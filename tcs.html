@@ -76,7 +76,6 @@
         let gameInterval;
         let isGameRunning = false;
 
-        // 初始化游戏
         function initializeGame() {
             snake = [];
             const startX = Math.floor(boardWidth / snakeSize / 2);
@@ -92,7 +91,6 @@
             message.classList.remove('show');
         }
 
-        // 渲染蛇
         function renderSnake() {
             const snakeElements = document.querySelectorAll('.snake');
             snakeElements.forEach(element => element.remove());
@@ -105,14 +103,12 @@
             });
         }
 
-        // 生成食物
         function generateFood() {
             let foodX, foodY, isValidPosition;
             do {
                 isValidPosition = true;
                 foodX = Math.floor(Math.random() * (boardWidth / snakeSize));
                 foodY = Math.floor(Math.random() * (boardHeight / snakeSize));
-                // 确保食物不会生成在蛇身体上
                 for (const segment of snake) {
                     if (segment.x === foodX && segment.y === foodY) {
                         isValidPosition = false;
@@ -128,7 +124,6 @@
             board.appendChild(foodElement);
         }
 
-        // 移动蛇
         function moveSnake() {
             const head = { x: snake[0].x, y: snake[0].y };
             switch (direction) {
@@ -147,7 +142,6 @@
             }
             snake.unshift(head);
 
-            // 检查蛇是否吃到食物
             if (head.x === food.x && head.y === food.y) {
                 generateFood();
                 score += 10;
@@ -164,13 +158,10 @@
             renderSnake();
         }
 
-        // 检查碰撞
         function isCollision(head) {
-            // 检查是否撞墙
             if (head.x < 0 || head.x >= boardWidth / snakeSize || head.y < 0 || head.y >= boardHeight / snakeSize) {
                 return true;
             }
-            // 检查是否撞到自己
             for (let i = 1; i < snake.length; i++) {
                 if (head.x === snake[i].x && head.y === snake[i].y) {
                     return true;
@@ -179,27 +170,23 @@
             return false;
         }
 
-        // 更新得分
         function updateScore() {
             scoreBoard.textContent = '得分: ' + score;
         }
 
-        // 结束游戏
         function endGame() {
             clearInterval(gameInterval);
             isGameRunning = false;
             message.classList.add('show');
         }
 
-        // 开始游戏
         function startGame() {
             if (isGameRunning) return;
             isGameRunning = true;
             initializeGame();
-            gameInterval = setInterval(moveSnake, 100); // 调整游戏速度（数值越小越快）
+            gameInterval = setInterval(moveSnake, 100);
         }
 
-        // 键盘控制方向
         document.addEventListener('keydown', (event) => {
             const key = event.key.toLowerCase();
             switch (key) {
@@ -225,7 +212,6 @@
             }
         });
 
-        // 初始化游戏
         initializeGame();
     });
 </script>
