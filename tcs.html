@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>贪吃蛇游戏</title>
+<title>丰富的贪吃蛇游戏</title>
 <style>
     body {
         display: flex;
@@ -12,12 +12,14 @@
         height: 100vh;
         margin: 0;
         background-color: #f0f0f0;
+        font-family: Arial, sans-serif;
     }
     #game-board {
         width: 300px;
         height: 300px;
         border: 1px solid #ccc;
         position: relative;
+        background-color: #fff;
     }
     .snake {
         width: 10px;
@@ -31,27 +33,59 @@
         background-color: red;
         position: absolute;
     }
+    #score-board {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        color: #333;
+    }
+    #message {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background-color: rgba(0, 0, 0, 0.7);
+        color: #fff;
+        padding: 20px;
+        border-radius: 10px;
+        display: none;
+    }
+    #message.show {
+        display: block;
+    }
 </style>
 </head>
 <body>
-<div id="game-board"></div>
+<div id="game-board">
+    <div id="score-board">得分: 0</div>
+    <div id="message">游戏结束！按 Enter 键重新开始</div>
+</div>
 <script>
     document.addEventListener('DOMContentLoaded', () => {
         const board = document.getElementById('game-board');
+        const scoreBoard = document.getElementById('score-board');
+        const message = document.getElementById('message');
         const boardWidth = parseInt(getComputedStyle(board).width);
         const boardHeight = parseInt(getComputedStyle(board).height);
         const snakeSize = 10;
         const initialSnakeLength = 5;
         let snake = [];
         let food = {};
+        let score = 0;
+        let direction = 'right';
+        let gameInterval;
+        let isGameRunning = false;
 
         function initializeGame() {
             snake = [];
             for (let i = 0; i < initialSnakeLength; i++) {
                 snake.push({ x: i, y: 0 });
             }
+            score = 0;
+            direction = 'right';
             renderSnake();
             generateFood();
+            updateScore();
         }
 
         function renderSnake() {
@@ -67,13 +101,13 @@
         }
 
         function generateFood() {
-            const foodX = Math.floor(Math.random() * (boardWidth / snakeSize)) * snakeSize;
-            const foodY = Math.floor(Math.random() * (boardHeight / snakeSize)) * snakeSize;
+            const foodX = Math.floor(Math.random() * (boardWidth / snakeSize));
+            const foodY = Math.floor(Math.random() * (boardHeight / snakeSize));
             food = { x: foodX, y: foodY };
             const foodElement = document.createElement('div');
             foodElement.className = 'food';
-            foodElement.style.left = food.x + 'px';
-            foodElement.style.top = food.y + 'px';
+            foodElement.style.left = food.x * snakeSize + 'px';
+            foodElement.style.top = food.y * snakeSize + 'px';
             board.appendChild(foodElement);
         }
 
@@ -94,15 +128,54 @@
                     break;
             }
             snake.unshift(head);
+
             if (head.x === food.x && head.y === food.y) {
                 generateFood();
+                score += 10;
+                updateScore();
             } else {
                 snake.pop();
             }
+
+            if (isCollision(head)) {
+                endGame();
+                return;
+            }
+
             renderSnake();
         }
 
-        let direction = 'right';
+        function isCollision(head) {
+            // Check wall collision
+            if (head.x < 0 || head.x >= boardWidth / snakeSize || head.y < 0 || head.y >= boardHeight / snakeSize) {
+                return true;
+            }
+            // Check self collision
+            for (let i = 1; i < snake.length; i++) {
+                if (head.x === snake[i].x && head.y === snake[i].y) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        function updateScore() {
+            scoreBoard.textContent = '得分: ' + score;
+        }
+
+        function endGame() {
+            clearInterval(gameInterval);
+            isGameRunning = false;
+            message.classList.add('show');
+        }
+
+        function startGame() {
+            if (isGameRunning) return;
+            isGameRunning = true;
+            message.classList.remove('show');
+            initializeGame();
+            gameInterval = setInterval(moveSnake, 100); // Adjust the speed here (lower is faster)
+        }
 
         document.addEventListener('keydown', (event) => {
             const key = event.key.toLowerCase();
@@ -114,16 +187,12 @@
                 direction = 'left';
             } else if (key === 'arrowright' || key === 'd') {
                 direction = 'right';
+            } else if (key === 'enter') {
+                startGame();
             }
         });
 
-        function gameLoop() {
-            moveSnake();
-            setTimeout(gameLoop, 100); // 调整游戏速度（数值越小越快）
-        }
-
-        initializeGame();
-        gameLoop();
+        startGame();
     });
 </script>
 </body>
