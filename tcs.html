@@ -78,8 +78,10 @@
 
         function initializeGame() {
             snake = [];
-            for (let i = 0; i < initialSnakeLength; i++) {
-                snake.push({ x: i, y: 0 });
+            const startX = Math.floor(boardWidth / snakeSize / 2);
+            const startY = Math.floor(boardHeight / snakeSize / 2);
+            for (let i = initialSnakeLength - 1; i >= 0; i--) {
+                snake.push({ x: startX - i, y: startY });
             }
             score = 0;
             direction = 'right';
@@ -101,8 +103,19 @@
         }
 
         function generateFood() {
-            const foodX = Math.floor(Math.random() * (boardWidth / snakeSize));
-            const foodY = Math.floor(Math.random() * (boardHeight / snakeSize));
+            let foodX, foodY, isValidPosition;
+            do {
+                isValidPosition = true;
+                foodX = Math.floor(Math.random() * (boardWidth / snakeSize));
+                foodY = Math.floor(Math.random() * (boardHeight / snakeSize));
+                // 确保食物不会生成在蛇身体上
+                for (const segment of snake) {
+                    if (segment.x === foodX && segment.y === foodY) {
+                        isValidPosition = false;
+                        break;
+                    }
+                }
+            } while (!isValidPosition);
             food = { x: foodX, y: foodY };
             const foodElement = document.createElement('div');
             foodElement.className = 'food';
@@ -140,60 +153,4 @@
             if (isCollision(head)) {
                 endGame();
                 return;
-            }
-
-            renderSnake();
-        }
-
-        function isCollision(head) {
-            // Check wall collision
-            if (head.x < 0 || head.x >= boardWidth / snakeSize || head.y < 0 || head.y >= boardHeight / snakeSize) {
-                return true;
-            }
-            // Check self collision
-            for (let i = 1; i < snake.length; i++) {
-                if (head.x === snake[i].x && head.y === snake[i].y) {
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        function updateScore() {
-            scoreBoard.textContent = '得分: ' + score;
-        }
-
-        function endGame() {
-            clearInterval(gameInterval);
-            isGameRunning = false;
-            message.classList.add('show');
-        }
-
-        function startGame() {
-            if (isGameRunning) return;
-            isGameRunning = true;
-            message.classList.remove('show');
-            initializeGame();
-            gameInterval = setInterval(moveSnake, 100); // Adjust the speed here (lower is faster)
-        }
-
-        document.addEventListener('keydown', (event) => {
-            const key = event.key.toLowerCase();
-            if (key === 'arrowup' || key === 'w') {
-                direction = 'up';
-            } else if (key === 'arrowdown' || key === 's') {
-                direction = 'down';
-            } else if (key === 'arrowleft' || key === 'a') {
-                direction = 'left';
-            } else if (key === 'arrowright' || key === 'd') {
-                direction = 'right';
-            } else if (key === 'enter') {
-                startGame();
-            }
-        });
-
-        startGame();
-    });
-</script>
-</body>
-</html>
+  
