@@ -15,11 +15,14 @@
         font-family: Arial, sans-serif;
     }
     #game-board {
-        width: 300px;
-        height: 300px;
+        width: 90vw;
+        height: 90vw;
+        max-width: 500px;
+        max-height: 500px;
         border: 1px solid #ccc;
         position: relative;
         background-color: #fff;
+        overflow: hidden;
     }
     .snake {
         width: 10px;
@@ -53,12 +56,39 @@
     #message.show {
         display: block;
     }
+    .controls {
+        position: absolute;
+        bottom: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        gap: 10px;
+    }
+    .control-button {
+        width: 50px;
+        height: 50px;
+        background-color: #333;
+        color: #fff;
+        border: none;
+        border-radius: 50%;
+        font-size: 18px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+    }
 </style>
 </head>
 <body>
 <div id="game-board">
     <div id="score-board">得分: 0</div>
     <div id="message">游戏结束！按 Enter 键重新开始</div>
+    <div class="controls">
+        <button class="control-button" id="up">↑</button>
+        <button class="control-button" id="left">←</button>
+        <button class="control-button" id="right">→</button>
+        <button class="control-button" id="down">↓</button>
+    </div>
 </div>
 <script>
     document.addEventListener('DOMContentLoaded', () => {
@@ -226,6 +256,20 @@
                     startGame();
                     break;
             }
+        });
+
+        // 触摸控制方向（适用于手机端）
+        document.getElementById('up').addEventListener('click', () => {
+            if (direction !== 'down') direction = 'up';
+        });
+        document.getElementById('down').addEventListener('click', () => {
+            if (direction !== 'up') direction = 'down';
+        });
+        document.getElementById('left').addEventListener('click', () => {
+            if (direction !== 'right') direction = 'left';
+        });
+        document.getElementById('right').addEventListener('click', () => {
+            if (direction !== 'left') direction = 'right';
         });
 
         // 初始化游戏
