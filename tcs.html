@@ -80,7 +80,7 @@
             snake = [];
             const startX = Math.floor(boardWidth / snakeSize / 2);
             const startY = Math.floor(boardHeight / snakeSize / 2);
-            for (let i = initialSnakeLength - 1; i >= 0; i--) {
+            for (let i = 0; i < initialSnakeLength; i++) {
                 snake.push({ x: startX - i, y: startY });
             }
             score = 0;
@@ -88,6 +88,7 @@
             renderSnake();
             generateFood();
             updateScore();
+            message.classList.remove('show');
         }
 
         function renderSnake() {
@@ -153,4 +154,4 @@
             if (isCollision(head)) {
                 endGame();
                 return;
-  
+   
