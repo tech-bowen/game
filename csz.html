@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>猜数字游戏</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    background-color: #f0f0f0;
+  }
+  #game {
+    margin: 20px auto;
+    width: 320px;
+    padding: 20px;
+    border-radius: 10px;
+    background-color: #fff;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+  }
+  h1 {
+    margin-top: 0;
+  }
+  input[type="number"], button {
+    padding: 10px;
+    margin: 5px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 16px;
+    transition: all 0.3s ease;
+    width: calc(50% - 14px);
+  }
+  input[type="number"]:focus, button:hover {
+    outline: none;
+    border-color: #66afe9;
+    box-shadow: 0 0 5px rgba(102, 175, 233, 0.6);
+  }
+  #startButton, #guessButton {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    cursor: pointer;
+    width: 100%;
+    font-size: 18px;
+    padding: 12px 20px;
+    margin: 10px 0;
+    border-radius: 5px;
+    transition: background-color 0.3s;
+  }
+  #startButton:hover, #guessButton:hover {
+    background-color: #45a049;
+  }
+  #gameArea {
+    display: none;
+  }
+  #message {
+    font-size: 18px;
+    font-weight: bold;
+    margin-top: 20px;
+  }
+  .difficulty {
+    margin-top: 10px;
+    display: flex;
+    justify-content: center;
+  }
+  .difficulty button {
+    margin: 0 5px;
+    padding: 8px 16px;
+    border-radius: 5px;
+    border: none;
+    background-color: #2196F3;
+    color: white;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s;
+  }
+  .difficulty button:hover {
+    background-color: #0b7dda;
+  }
+</style>
+</head>
+<body>
+  <div id="game">
+    <h1>猜数字游戏</h1>
+    <p>选择难度：</p>
+    <div class="difficulty">
+      <button onclick="setDifficulty('easy')">简单</button>
+      <button onclick="setDifficulty('medium')">中等</button>
+      <button onclick="setDifficulty('hard')">困难</button>
+    </div>
+    <br>
+    <div id="inputArea" style="display: none;">
+      <p>输入一个数字范围：</p>
+      <input type="number" id="minNumber" placeholder="最小数字" min="1" required>
+      <input type="number" id="maxNumber" placeholder="最大数字" required>
+      <br><br>
+      <button id="startButton" onclick="startGame()">开始游戏</button>
+    </div>
+    <div id="gameArea">
+      <p>剩余猜测次数: <span id="guessesLeft">10</span></p>
+      <input type="number" id="userGuess" placeholder="你的猜测" min="1" required>
+      <button id="guessButton" onclick="checkGuess()">猜!</button>
+      <p id="message"></p>
+    </div>
+  </div>
+
+  <script>
+    let secretNumber;
+    let guessesLeft;
+
+    function setDifficulty(difficulty) {
+      document.getElementById('inputArea').style.display = 'block';
+      document.getElementById('gameArea').style.display = 'none';
+
+      switch (difficulty) {
+        case 'easy':
+          guessesLeft = 15;
+          break;
+        case 'medium':
+          guessesLeft = 10;
+          break;
+        case 'hard':
+          guessesLeft = 5;
+          break;
+        default:
+          guessesLeft = 10;
+      }
+
+      document.getElementById('guessesLeft').textContent = guessesLeft;
+    }
+
+    function startGame() {
+      const min = parseInt(document.getElementById('minNumber').value);
+      const max = parseInt(document.getElementById('maxNumber').value);
+      secretNumber = Math.floor(Math.random() * (max - min + 1)) + min;
+      document.getElementById('gameArea').style.display = 'block';
+      document.getElementById('message').textContent = '';
+      document.getElementById('userGuess').focus();
+    }
+
+    function checkGuess() {
+      const userGuess = parseInt(document.getElementById('userGuess').value);
+      if (isNaN(userGuess)) {
+        alert('请输入有效数字！');
+        return;
+      }
+
+      guessesLeft--;
+      document.getElementById('guessesLeft').textContent = guessesLeft;
+
+      if (userGuess === secretNumber) {
+        document.getElementById('message').textContent = '恭喜你，猜对了！';
+        setTimeout(setDifficulty, 3000, getCurrentDifficulty()); // 3秒后重新开始游戏
+      } else if (guessesLeft === 0) {
+        document.getElementById('message').textContent = `很遗憾，游戏结束。正确答案是 ${secretNumber}。`;
+        setTimeout(setDifficulty, 3000, getCurrentDifficulty()); // 3秒后重新开始游戏
+      } else {
+        document.getElementById('message').textContent = `猜错了，剩余次数 ${guessesLeft}。`;
+      }
+    }
+
+    function getCurrentDifficulty() {
+      if (guessesLeft === 15) {
+        return 'easy';
+      } else if (guessesLeft === 10) {
+        return 'medium';
+      } else if (guessesLeft === 5) {
+        return 'hard';
+      } else {
+        return 'medium'; // 默认中等难度
+      }
+    }
+
+    // 让输入框按 Enter 键确认
+    document.getElementById('userGuess').addEventListener('keyup', function(event) {
+      if (event.keyCode === 13) {
+        event.preventDefault();
+        document.getElementById('guessButton').click();
+      }
+    });
+  </script>
+</body>
+</html>
