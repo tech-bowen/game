@@ -18,7 +18,7 @@
       box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
       border-radius: 10px;
     }
-    #controls {
+    #controls, #speedControl {
       display: flex;
       justify-content: center;
       margin-top: 10px;
@@ -41,7 +41,7 @@
     .button:hover {
       background-color: #555;
     }
-    #gameOver {
+    #gameOver, #speedSelector {
       display: none;
       position: absolute;
       top: 50%;
@@ -54,7 +54,7 @@
       text-align: center;
       box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
     }
-    #gameOver button {
+    #gameOver button, #speedSelector button {
       background-color: #333;
       color: #fff;
       border: none;
@@ -64,7 +64,7 @@
       cursor: pointer;
       transition: background-color 0.3s;
     }
-    #gameOver button:hover {
+    #gameOver button:hover, #speedSelector button:hover {
       background-color: #555;
     }
   </style>
@@ -77,6 +77,11 @@
     <button class="button" id="right">→</button>
     <button class="button" id="down">↓</button>
   </div>
+  <div id="speedControl">
+    <button class="button" onclick="setSpeed(100)">慢</button>
+    <button class="button" onclick="setSpeed(70)">中</button>
+    <button class="button" onclick="setSpeed(40)">快</button>
+  </div>
   <div id="gameOver">
     <p>游戏结束！按 Enter 键重新开始</p>
     <button onclick="restartGame()">重新开始</button>
@@ -85,6 +90,7 @@
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
     const box = 20;
+    let gameSpeed = 100;
 
     let snake = [{x: 9 * box, y: 10 * box}];
     let direction;
@@ -114,7 +120,7 @@
     function drawGame() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       for (let i = 0; i < snake.length; i++) {
-        ctx.fillStyle = i === 0 ? 'green' : 'black';
+        ctx.fillStyle = i === 0 ? '#4CAF50' : '#388E3C';
         ctx.fillRect(snake[i].x, snake[i].y, box, box);
         ctx.strokeStyle = 'white';
         ctx.strokeRect(snake[i].x, snake[i].y, box, box);
@@ -163,6 +169,12 @@
       return false;
     }
 
+    function setSpeed(speed) {
+      gameSpeed = speed;
+      clearInterval(game);
+      game = setInterval(drawGame, gameSpeed);
+    }
+
     function restartGame() {
       snake = [{x: 9 * box, y: 10 * box}];
       direction = null;
@@ -170,12 +182,12 @@
         x: Math.floor(Math.random() * 19 + 1) * box,
         y: Math.floor(Math.random() * 19 + 1) * box
       };
-      game = setInterval(drawGame, 100);
+      game = setInterval(drawGame, gameSpeed);
       document.getElementById('gameOver').style.display = 'none';
       document.removeEventListener('keydown', restartGame);
     }
 
-    let game = setInterval(drawGame, 100);
+    let game = setInterval(drawGame, gameSpeed);
   </script>
 </body>
 </html>
