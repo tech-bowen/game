@@ -16,9 +16,7 @@
             display: block;
             margin: 0 auto;
             background-color: #fff;
-        }
-        #gameControls {
-            margin-top: 20px;
+            touch-action: none; /* 禁止默认的触摸事件，确保触摸操作生效 */
         }
         .btn {
             display: inline-block;
@@ -59,9 +57,8 @@
     <canvas id="gameCanvas" width="400" height="400"></canvas>
 
     <div id="gameControls">
-        <button class="btn" onclick="changeSpeed('slow')">慢</button>
-        <button class="btn" onclick="changeSpeed('medium')">中</button>
-        <button class="btn" onclick="changeSpeed('fast')">快</button>
+        <button class="btn" id="startButton">开始游戏</button>
+        <button class="btn" id="resetButton">重新开始</button>
     </div>
 
     <div>
@@ -91,6 +88,7 @@
         var gridSize = 10;
         var speed = 100;
         var score = 0;
+        var gameInterval;
 
         // 音乐播放器
         var audio = new Audio(); // 创建音乐对象
@@ -121,6 +119,19 @@
         }
 
         // 按钮点击事件
+        document.getElementById('startButton').addEventListener('click', function() {
+            gameInterval = setInterval(gameLoop, speed);
+            this.disabled = true; // 禁用开始按钮
+            document.getElementById('resetButton').disabled = false; // 启用重新开始按钮
+        });
+
+        document.getElementById('resetButton').addEventListener('click', function() {
+            clearInterval(gameInterval);
+            resetGame();
+            document.getElementById('startButton').disabled = false; // 启用开始按钮
+            this.disabled = true; // 禁用重新开始按钮
+        });
+
         function redirectToHomepage() {
             window.location.href = 'https://game.tech-bowen.com';
         }
@@ -206,7 +217,6 @@
             clearCanvas();
             updateScore();
             generateFood();
-            gameInterval = setInterval(gameLoop, speed);
         }
 
         // 更新分数
@@ -246,34 +256,71 @@
             }
         }
 
-        // 键盘控制
-        document.addEventListener('keydown', function(event) {
-            if (event.key === 'ArrowUp' && dy === 0) {
-                dx = 0;
-                dy = -gridSize;
-            }
-            if (event.key === 'ArrowDown' && dy === 0) {
-                dx = 0;
-                dy = gridSize;
-            }
-            if (event.key === 'ArrowLeft' && dx === 0) {
-                dx = -gridSize;
-                dy = 0;
-            }
-            if (event.key === 'ArrowRight' && dx === 0) {
-                dx = gridSize;
-                dy = 0;
+        // 触摸控制
+        var touchStartX, touchStartY;
+        canvas.addEventListener('touchstart', function(e) {
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+        });
+
+        canvas.addEventListener('touchend', function(e) {
+            var touchEndX = e.changedTouches[0].clientX;
+            var touchEndY = e.changedTouches[0].clientY;
+
+            var dx = touchEndX - touchStartX;
+            var dy = touchEndY - touchStartY;
+
+            if (Math.abs(dx) > Math.abs(dy)) {
+                // 横向滑动
+                if (dx > 0) {
+                    // 向右滑动
+                    moveRight();
+                } else {
+                    // 向左滑动
+                    moveLeft();
+                }
+            } else {
+                // 纵向滑动
+                if (dy > 0) {
+                    // 向下滑动
+                    moveDown();
+                } else {
+                    // 向上滑动
+                    moveUp();
+                }
             }
         });
 
-        // 初始化游戏
-        generateFood();
-        var gameInterval = setInterval(gameLoop, speed);
+        // 移动方向函数
+        function moveUp() {
+            if (dy === 0) { // 防止反向移动
+                dy = -gridSize;
+                dx = 0;
+            }
+        }
 
-        // 初始显示分数
-        updateScore();
+        function moveDown() {
+            if (dy === 0) {
+                dy = gridSize;
+                dx = 0;
+            }
+        }
 
-        // 游戏结束时清除缓存
+        function moveLeft() {
+            if (dx === 0) {
+                dx = -gridSize;
+                dy = 0;
+            }
+        }
+
+        function moveRight() {
+            if (dx === 0) {
+                dx = gridSize;
+                dy = 0;
+            }
+        }
+
+        // 窗口卸载时清除缓存
         window.addEventListener('unload', function() {
             localStorage.clear();
         });
