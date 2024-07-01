@@ -48,6 +48,46 @@
             border: 1px solid #000;
             border-radius: 5px;
         }
+        #modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+        }
+        #modalContent {
+            background-color: #fff;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 400px;
+            text-align: center;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        .modalButton {
+            padding: 10px 20px;
+            margin: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+        .modalButton:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        .modalButton:hover:enabled {
+            background-color: #45a049;
+        }
     </style>
 </head>
 <body>
@@ -68,6 +108,13 @@
         <button onclick="window.location.href='https://blog.tech-bowen.com'">进入博客</button>
     </div>
     <div id="score" class="scoreboard"></div>
+    <div id="modal">
+        <div id="modalContent">
+            <p>请前往用户协议网站查看用户协议，查看后点击"我已查看"，继续访问网站则默认您同意用户协议。</p>
+            <button class="modalButton" onclick="window.open('https://blog.tech-bowen.com/2024/07/blog-post.html', '_blank')">查看协议</button>
+            <button id="confirmButton" class="modalButton" disabled>我已查看</button>
+        </div>
+    </div>
     <script>
         let canvas = document.getElementById('gameCanvas');
         let ctx = canvas.getContext('2d');
@@ -95,9 +142,22 @@
             localStorage.clear();
         }
 
-        window.onload = () => {
+        window.onload = function() {
             clearCache();
             document.getElementById('speed').value = speed;
+
+            const modal = document.getElementById('modal');
+            const confirmButton = document.getElementById('confirmButton');
+
+            modal.style.display = 'flex';
+
+            setTimeout(() => {
+                confirmButton.disabled = false;
+            }, 5000);
+
+            confirmButton.onclick = function() {
+                modal.style.display = 'none';
+            };
 
             if (/Mobi|Android/i.test(navigator.userAgent)) {
                 addMobileControls();
