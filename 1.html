@@ -113,6 +113,7 @@
             <p>请前往用户协议网站查看用户协议，查看后点击"我已查看"，继续访问网站则默认您同意用户协议。</p>
             <button class="modalButton" onclick="window.open('https://blog.tech-bowen.com/2024/07/blog-post.html', '_blank')">查看协议</button>
             <button id="confirmButton" class="modalButton" disabled>我已查看</button>
+            <span id="countdown">5</span> 秒
         </div>
     </div>
     <script>
@@ -148,12 +149,19 @@
 
             const modal = document.getElementById('modal');
             const confirmButton = document.getElementById('confirmButton');
+            const countdown = document.getElementById('countdown');
+            let timeLeft = 5;
 
             modal.style.display = 'flex';
 
-            setTimeout(() => {
-                confirmButton.disabled = false;
-            }, 5000);
+            const countdownInterval = setInterval(() => {
+                timeLeft--;
+                countdown.textContent = timeLeft;
+                if (timeLeft <= 0) {
+                    clearInterval(countdownInterval);
+                    confirmButton.disabled = false;
+                }
+            }, 1000);
 
             confirmButton.onclick = function() {
                 modal.style.display = 'none';
@@ -236,9 +244,7 @@
 
         function collision(head, array) {
             for (let i = 0; i < array.length; i++) {
-                if (head.x === array[i].x && head.y === array[i].y) {
-                    return true;
-                }
+                if (head.x === array[i].x && head.y === array[i].y) return true;
             }
             return false;
         }
