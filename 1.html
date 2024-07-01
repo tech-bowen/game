@@ -11,9 +11,12 @@
       align-items: center;
       height: 100vh;
       background-color: #f0f0f0;
+      font-family: Arial, sans-serif;
     }
     canvas {
-      background-color: #fff;
+      background-color: #e0e0e0;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+      border-radius: 10px;
     }
     #controls {
       display: flex;
@@ -27,12 +30,42 @@
       background-color: #333;
       color: #fff;
       border: none;
-      border-radius: 5px;
+      border-radius: 50%;
       font-size: 24px;
       display: flex;
       justify-content: center;
       align-items: center;
       cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    .button:hover {
+      background-color: #555;
+    }
+    #gameOver {
+      display: none;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background-color: rgba(0, 0, 0, 0.8);
+      color: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      text-align: center;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    }
+    #gameOver button {
+      background-color: #333;
+      color: #fff;
+      border: none;
+      padding: 10px 20px;
+      margin-top: 10px;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    #gameOver button:hover {
+      background-color: #555;
     }
   </style>
 </head>
@@ -44,6 +77,10 @@
     <button class="button" id="right">→</button>
     <button class="button" id="down">↓</button>
   </div>
+  <div id="gameOver">
+    <p>游戏结束！按 Enter 键重新开始</p>
+    <button onclick="restartGame()">重新开始</button>
+  </div>
   <script>
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
@@ -52,8 +89,8 @@
     let snake = [{x: 9 * box, y: 10 * box}];
     let direction;
     let food = {
-      x: Math.floor(Math.random()*19 + 1) * box,
-      y: Math.floor(Math.random()*19 + 1) * box
+      x: Math.floor(Math.random() * 19 + 1) * box,
+      y: Math.floor(Math.random() * 19 + 1) * box
     };
 
     document.addEventListener('keydown', setDirection);
@@ -110,7 +147,7 @@
 
       if (snakeX < 0 || snakeX >= canvas.width || snakeY < 0 || snakeY >= canvas.height || collision(newHead, snake)) {
         clearInterval(game);
-        alert('游戏结束！按 Enter 键重新开始');
+        document.getElementById('gameOver').style.display = 'block';
         document.addEventListener('keydown', restartGame);
       }
 
@@ -126,17 +163,16 @@
       return false;
     }
 
-    function restartGame(event) {
-      if (event.keyCode === 13) {
-        snake = [{x: 9 * box, y: 10 * box}];
-        direction = null;
-        food = {
-          x: Math.floor(Math.random() * 19 + 1) * box,
-          y: Math.floor(Math.random() * 19 + 1) * box
-        };
-        game = setInterval(drawGame, 100);
-        document.removeEventListener('keydown', restartGame);
-      }
+    function restartGame() {
+      snake = [{x: 9 * box, y: 10 * box}];
+      direction = null;
+      food = {
+        x: Math.floor(Math.random() * 19 + 1) * box,
+        y: Math.floor(Math.random() * 19 + 1) * box
+      };
+      game = setInterval(drawGame, 100);
+      document.getElementById('gameOver').style.display = 'none';
+      document.removeEventListener('keydown', restartGame);
     }
 
     let game = setInterval(drawGame, 100);
