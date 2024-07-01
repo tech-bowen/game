@@ -38,6 +38,16 @@
         .buttons button:hover {
             background-color: #45a049;
         }
+        .scoreboard {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            font-size: 18px;
+            background-color: #fff;
+            padding: 5px 10px;
+            border: 1px solid #000;
+            border-radius: 5px;
+        }
     </style>
 </head>
 <body>
@@ -55,7 +65,9 @@
     <div class="buttons">
         <button onclick="window.location.href='https://game.tech-bowen.com'">跳转网站</button>
         <button onclick="window.location.href='mailto:admin@tech-bowen.com'">发邮件</button>
+        <button onclick="window.location.href='https://blog.tech-bowen.com'">进入博客</button>
     </div>
+    <div id="score" class="scoreboard"></div>
     <script>
         let canvas = document.getElementById('gameCanvas');
         let ctx = canvas.getContext('2d');
@@ -65,6 +77,7 @@
         let food = {x: Math.floor(Math.random() * 19 + 1) * box, y: Math.floor(Math.random() * 19 + 1) * box};
         let speed = 100;
         let game;
+        let score = 0;
 
         function startGame() {
             clearCache();
@@ -74,6 +87,8 @@
             speed = parseInt(document.getElementById('speed').value);
             clearInterval(game);
             game = setInterval(draw, speed);
+            score = 0;
+            updateScoreboard();
         }
 
         function clearCache() {
@@ -142,6 +157,8 @@
             if (direction === 'DOWN') snakeY += box;
 
             if (snakeX === food.x && snakeY === food.y) {
+                score++;
+                updateScoreboard();
                 food = {x: Math.floor(Math.random() * 19 + 1) * box, y: Math.floor(Math.random() * 19 + 1) * box};
             } else {
                 snake.pop();
@@ -151,6 +168,7 @@
 
             if (snakeX < 0 || snakeY < 0 || snakeX >= 400 || snakeY >= 400 || collision(newHead, snake)) {
                 clearInterval(game);
+                alert(`游戏结束！你的分数是: ${score}`);
             }
 
             snake.unshift(newHead);
@@ -163,6 +181,10 @@
                 }
             }
             return false;
+        }
+
+        function updateScoreboard() {
+            document.getElementById('score').innerText = `分数: ${score}`;
         }
     </script>
 </body>
