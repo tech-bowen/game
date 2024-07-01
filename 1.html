@@ -20,6 +20,23 @@
         #gameControls {
             margin-top: 20px;
         }
+        .btn {
+            display: inline-block;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            text-align: center;
+            text-decoration: none;
+            font-size: 16px;
+            margin: 10px;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+        .btn:hover {
+            background-color: #0056b3;
+        }
         #score {
             position: absolute;
             top: 10px;
@@ -30,6 +47,11 @@
             padding: 5px 10px;
             border-radius: 5px;
         }
+        #musicList {
+            text-align: left;
+            margin-top: 20px;
+            padding-left: 20px;
+        }
     </style>
 </head>
 <body>
@@ -37,14 +59,23 @@
     <canvas id="gameCanvas" width="400" height="400"></canvas>
 
     <div id="gameControls">
-        <button onclick="changeSpeed('slow')">慢</button>
-        <button onclick="changeSpeed('medium')">中</button>
-        <button onclick="changeSpeed('fast')">快</button>
+        <button class="btn" onclick="changeSpeed('slow')">慢</button>
+        <button class="btn" onclick="changeSpeed('medium')">中</button>
+        <button class="btn" onclick="changeSpeed('fast')">快</button>
     </div>
 
     <div>
-        <button onclick="redirectToHomepage()">返回主页</button>
-        <button onclick="redirectToBlog()">访问博客</button>
+        <button class="btn" onclick="redirectToHomepage()">返回主页</button>
+        <button class="btn" onclick="redirectToBlog()">访问博客</button>
+    </div>
+
+    <div id="score">得分: 0</div>
+
+    <div id="musicList">
+        <h3>音乐列表</h3>
+        <ul id="playlist">
+            <!-- 这里可以动态添加音乐项 -->
+        </ul>
     </div>
 
     <script>
@@ -62,10 +93,32 @@
         var score = 0;
 
         // 音乐播放器
-        var audio = new Audio('music/song1.mp3'); // 替换为你的音乐文件路径
-        audio.loop = true; // 循环播放
-        audio.volume = 0.5; // 设置音量
-        audio.play(); // 播放音乐
+        var audio = new Audio(); // 创建音乐对象
+        audio.volume = 0.5; // 设置音量，默认为0.5
+        var playlist = document.getElementById('playlist');
+
+        // 音乐列表，每首歌曲对象包含名称和路径
+        var musicList = [
+            { name: 'Song 1', source: 'music/song1.mp3' },
+            { name: 'Song 2', source: 'music/song2.mp3' }
+            // 添加更多歌曲
+        ];
+
+        // 添加音乐到列表
+        musicList.forEach(function(music) {
+            var li = document.createElement('li');
+            li.textContent = music.name;
+            li.onclick = function() {
+                playMusic(music.source);
+            };
+            playlist.appendChild(li);
+        });
+
+        // 播放音乐函数
+        function playMusic(source) {
+            audio.src = source;
+            audio.play();
+        }
 
         // 按钮点击事件
         function redirectToHomepage() {
@@ -151,7 +204,9 @@
             dy = 0;
             score = 0;
             clearCanvas();
-            gameLoop();
+            updateScore();
+            generateFood();
+            gameInterval = setInterval(gameLoop, speed);
         }
 
         // 更新分数
@@ -211,12 +266,17 @@
             }
         });
 
-        // 生成初始食物并启动游戏循环
+        // 初始化游戏
         generateFood();
         var gameInterval = setInterval(gameLoop, speed);
 
         // 初始显示分数
         updateScore();
+
+        // 游戏结束时清除缓存
+        window.addEventListener('unload', function() {
+            localStorage.clear();
+        });
     </script>
 </body>
 </html>
