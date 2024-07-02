@@ -8,19 +8,46 @@
         body {
             font-family: Arial, sans-serif;
             display: flex;
-            flex-direction: column;
-            align-items: center;
             justify-content: center;
+            align-items: center;
             height: 100vh;
             margin: 0;
             background-color: #f0f0f0;
         }
-        h1 {
-            color: #333;
+        #gameContainer {
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            align-items: center;
         }
-        canvas {
+        #gameCanvas {
             background-color: #fff;
             border: 1px solid #000;
+            margin-right: 20px;
+        }
+        #musicList {
+            max-height: 80vh;
+            overflow-y: auto;
+            padding: 10px;
+            background-color: #e0e0e0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            width: 200px;
+        }
+        #musicList ul {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+        #musicList li {
+            margin-bottom: 5px;
+            cursor: pointer;
+            padding: 5px;
+            background-color: #ddd;
+            border-radius: 3px;
+        }
+        #musicList li:hover {
+            background-color: #ccc;
         }
         .controls, .buttons {
             margin-top: 10px;
@@ -88,66 +115,16 @@
         .modalButton:hover:enabled {
             background-color: #45a049;
         }
-        #musicList {
-            list-style-type: none;
-            padding: 0;
-            width: 200px;
-            margin-top: 20px;
-        }
-        #musicList li {
-            margin-bottom: 5px;
-        }
-        .musicButton {
-            padding: 10px 20px;
-            margin: 5px;
-            background-color: #4CAF50; /* 网站主题颜色 */
-            color: white;
-            border: none;
-            cursor: pointer;
-            border-radius: 5px;
-            transition: background-color 0.3s;
-        }
-        .musicButton:hover {
-            background-color: #45a049; /* 按钮悬停颜色 */
-        }
-        @media (max-width: 768px) {
-            #musicList {
-                display: none; /* 在手机端隐藏播放列表 */
-            }
-        }
     </style>
 </head>
 <body>
-    <h1>贪吃蛇游戏</h1>
-    <canvas id="gameCanvas" width="400" height="400"></canvas>
-    <div class="controls">
-        <label for="speed">速度:</label>
-        <select id="speed">
-            <option value="150">非常慢</option>
-            <option value="120">慢</option>
-            <option value="100">中等</option>
-            <option value="80">快</option>
-            <option value="60">非常快</option>
-            <option value="40">极快</option>
-        </select>
-        <button onclick="startGame()">开始游戏</button>
-    </div>
-    <div class="buttons">
-        <button onclick="window.location.href='https://game.tech-bowen.com'">跳转网站</button>
-        <button onclick="window.location.href='mailto:admin@tech-bowen.com'">发邮件</button>
-        <button onclick="window.location.href='https://blog.tech-bowen.com'">进入博客</button>
-    </div>
-    <div id="score" class="scoreboard"></div>
-    <div id="modal">
-        <div id="modalContent">
-            <p>请前往用户协议网站查看用户协议，查看后点击"我已查看"，继续访问网站则默认您同意用户协议。</p>
-            <button class="modalButton" onclick="window.open('https://blog.tech-bowen.com/2024/07/blog-post.html', '_blank')">查看协议</button>
-            <button id="confirmButton" class="modalButton" disabled>我已查看</button>
-            <span id="countdown">5</span> 秒
+    <div id="gameContainer">
+        <canvas id="gameCanvas" width="400" height="400"></canvas>
+        <div id="musicList">
+            <h2>音乐列表</h2>
+            <ul id="playlist"></ul>
         </div>
     </div>
-    <ul id="musicList"></ul>
-    <audio id="audioPlayer" controls></audio>
 
     <script>
         let canvas = document.getElementById('gameCanvas');
@@ -202,6 +179,7 @@
 
             if (/Mobi|Android/i.test(navigator.userAgent)) {
                 addMobileControls();
+                addMobileSpeedOption();
             } else {
                 document.addEventListener('keydown', changeDirection);
                 document.addEventListener('keypress', (e) => {
@@ -209,32 +187,30 @@
                 });
             }
 
-            // 音乐播放器部分
-            const musicList = document.getElementById('musicList');
-            const audioPlayer = document.getElementById('audioPlayer');
-
-            // 这里假设是预先准备好的文件列表
-            const songs = [
-                { name: 'Song 1', src: 'song1.mp3' },
-                { name: 'Song 2', src: 'song2.mp3' },
-                { name: 'Song 3', src: 'song3.mp3' }
-                // 可以根据实际情况添加更多的歌曲信息
-            ];
-
-            // 根据歌曲列表生成HTML并添加到页面中
-            songs.forEach(song => {
-                const li = document.createElement('li');
-                li.innerHTML = `
-                    <button class="musicButton" onclick="playMusic('${song.src}')">${song.name}</button>
-                `;
-                musicList.appendChild(li);
+            // Music playlist generation
+            const playlist = document.getElementById('playlist');
+            fetchMusicList().then(musicList => {
+                musicList.forEach((music, index) => {
+                    const li = document.createElement('li');
+                    li.textContent = `${index + 1}.mp3`;
+                    playlist.appendChild(li);
+                });
             });
+        }
 
-            // 播放音乐的函数
-            function playMusic(src) {
-                audioPlayer.src = src;
-                audioPlayer.play();
-            }
+        async function fetchMusicList() {
+            // Simulate fetching music list (replace with actual fetching logic)
+            return new Promise(resolve => {
+                setTimeout(() => {
+                    // Example music list, replace with actual fetching logic
+                    const musicList = [
+                        { name: 'Song1', file: 'song1.mp3' },
+                        { name: 'Song2', file: 'song2.mp3' },
+                        { name: 'Song3', file: 'song3.mp3' }
+                    ];
+                    resolve(musicList);
+                }, 500); // Simulating delay
+            });
         }
 
         function addMobileControls() {
@@ -256,27 +232,41 @@
             document.body.appendChild(controls);
         }
 
+        function addMobileSpeedOption() {
+            let speedSelect = document.getElementById('speed');
+            let option = document.createElement('option');
+            option.value = "200";
+            option.textContent = "更慢";
+            speedSelect.appendChild(option);
+        }
+
         function changeDirection(event) {
-            if (event.key === 'ArrowUp' && direction !== 'DOWN') direction = 'UP';
-            if (event.key === 'ArrowDown' && direction !== 'UP') direction = 'DOWN';
-            if (event.key === 'ArrowLeft' && direction !== 'RIGHT') direction = 'LEFT';
-            if (event.key === 'ArrowRight' && direction !== 'LEFT') direction = 'RIGHT';
+            if (event.keyCode === 37 && direction !== 'RIGHT') direction = 'LEFT';
+            else if (event.keyCode === 38 && direction !== 'DOWN') direction = 'UP';
+            else if (event.keyCode === 39 && direction !== 'LEFT') direction = 'RIGHT';
+            else if (event.keyCode === 40 && direction !== 'UP') direction = 'DOWN';
         }
 
         function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            snake.forEach((segment, index) => {
-                ctx.fillStyle = (index === 0) ? 'green' : 'white';
-                ctx.fillRect(segment.x, segment.y, box, box);
-                ctx.strokeStyle = 'darkgreen';
-                ctx.strokeRect(segment.x, segment.y, box, box);
-            });
+
+            for (let i = 0; i < snake.length; i++) {
+                ctx.fillStyle = (i === 0) ? 'green' : 'white';
+                ctx.fillRect(snake[i].x, snake[i].y, box, box);
+                ctx.strokeStyle = 'red';
+                ctx.strokeRect(snake[i].x, snake[i].y, box, box);
+            }
 
             ctx.fillStyle = 'red';
             ctx.fillRect(food.x, food.y, box, box);
 
             let snakeX = snake[0].x;
             let snakeY = snake[0].y;
+
+            if (direction === 'LEFT') snakeX -= box;
+            if (direction === 'UP') snakeY -= box;
+            if (direction === 'RIGHT') snakeX += box;
+            if (direction === 'DOWN') snakeY += box;
 
             if (snakeX === food.x && snakeY === food.y) {
                 score++;
@@ -286,38 +276,44 @@
                 snake.pop();
             }
 
-            if (snakeX < box || snakeX > 19 * box || snakeY < box || snakeY > 19 * box || collision(snakeX, snakeY, snake)) {
-                clearInterval(game);
-                clearCache();
-                snake = [{x: 9 * box, y: 10 * box}];
-                direction = null;
-                food = {x: Math.floor(Math.random() * 19 + 1) * box, y: Math.floor(Math.random() * 19 + 1) * box};
-                score = 0;
-                updateScoreboard();
-                game = setInterval(draw, speed);
-            }
-
-            switch(direction) {
-                case 'UP': snakeY -= box; break;
-                case 'DOWN': snakeY += box; break;
-                case 'LEFT': snakeX -= box; break;
-                case 'RIGHT': snakeX += box; break;
-            }
-
             let newHead = {x: snakeX, y: snakeY};
+
+            if (snakeX < box || snakeX > 19 * box || snakeY < box || snakeY > 19 * box || collision(newHead, snake)) {
+                clearInterval(game);
+                showModal();
+                return;
+            }
+
             snake.unshift(newHead);
         }
 
         function collision(head, array) {
             for (let i = 0; i < array.length; i++) {
-                if (head === array[i].x && head === array[i].y) return true;
+                if (head.x === array[i].x && head.y === array[i].y) {
+                    return true;
+                }
             }
             return false;
         }
 
+        function showModal() {
+            const modal = document.getElementById('modal');
+            modal.style.display = 'flex';
+        }
+
         function updateScoreboard() {
-            document.getElementById('score').textContent = `得分: ${score}`;
+            const scoreboard = document.querySelector('.scoreboard');
+            scoreboard.textContent = `得分: ${score}`;
         }
     </script>
+
+    <div id="modal">
+        <div id="modalContent">
+            <h2>游戏结束</h2>
+            <p>得分: <span class="scoreboard">0</span></p>
+            <p>是否重新开始游戏？</p>
+            <button id="confirmButton" class="modalButton" disabled>确认 (<span id="countdown">5</span>)</button>
+        </div>
+    </div>
 </body>
 </html>
