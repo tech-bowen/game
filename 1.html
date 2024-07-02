@@ -8,46 +8,19 @@
         body {
             font-family: Arial, sans-serif;
             display: flex;
-            justify-content: center;
+            flex-direction: column;
             align-items: center;
+            justify-content: center;
             height: 100vh;
             margin: 0;
             background-color: #f0f0f0;
         }
-        #gameContainer {
-            display: flex;
-            flex-direction: row;
-            justify-content: center;
-            align-items: center;
+        h1 {
+            color: #333;
         }
-        #gameCanvas {
+        canvas {
             background-color: #fff;
             border: 1px solid #000;
-            margin-right: 20px;
-        }
-        #musicList {
-            max-height: 80vh;
-            overflow-y: auto;
-            padding: 10px;
-            background-color: #e0e0e0;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            width: 200px;
-        }
-        #musicList ul {
-            list-style-type: none;
-            padding: 0;
-            margin: 0;
-        }
-        #musicList li {
-            margin-bottom: 5px;
-            cursor: pointer;
-            padding: 5px;
-            background-color: #ddd;
-            border-radius: 3px;
-        }
-        #musicList li:hover {
-            background-color: #ccc;
         }
         .controls, .buttons {
             margin-top: 10px;
@@ -118,14 +91,34 @@
     </style>
 </head>
 <body>
-    <div id="gameContainer">
-        <canvas id="gameCanvas" width="400" height="400"></canvas>
-        <div id="musicList">
-            <h2>音乐列表</h2>
-            <ul id="playlist"></ul>
+    <h1>贪吃蛇游戏</h1>
+    <canvas id="gameCanvas" width="400" height="400"></canvas>
+    <div class="controls">
+        <label for="speed">速度:</label>
+        <select id="speed">
+            <option value="150">非常慢</option>
+            <option value="120">慢</option>
+            <option value="100">中等</option>
+            <option value="80">快</option>
+            <option value="60">非常快</option>
+            <option value="40">极快</option>
+        </select>
+        <button onclick="startGame()">开始游戏</button>
+    </div>
+    <div class="buttons">
+        <button onclick="window.location.href='https://game.tech-bowen.com'">跳转网站</button>
+        <button onclick="window.location.href='mailto:admin@tech-bowen.com'">发邮件</button>
+        <button onclick="window.location.href='https://blog.tech-bowen.com'">进入博客</button>
+    </div>
+    <div id="score" class="scoreboard"></div>
+    <div id="modal">
+        <div id="modalContent">
+            <p>请前往用户协议网站查看用户协议，查看后点击"我已查看"，继续访问网站则默认您同意用户协议。</p>
+            <button class="modalButton" onclick="window.open('https://blog.tech-bowen.com/2024/07/blog-post.html', '_blank')">查看协议</button>
+            <button id="confirmButton" class="modalButton" disabled>我已查看</button>
+            <span id="countdown">5</span> 秒
         </div>
     </div>
-
     <script>
         let canvas = document.getElementById('gameCanvas');
         let ctx = canvas.getContext('2d');
@@ -179,38 +172,18 @@
 
             if (/Mobi|Android/i.test(navigator.userAgent)) {
                 addMobileControls();
-                addMobileSpeedOption();
+                // 添加一个更慢的速度选项
+                let speedSelect = document.getElementById('speed');
+                let option = document.createElement('option');
+                option.value = "200";
+                option.textContent = "更慢";
+                speedSelect.appendChild(option);
             } else {
                 document.addEventListener('keydown', changeDirection);
                 document.addEventListener('keypress', (e) => {
                     if (e.code === 'Enter') startGame();
                 });
             }
-
-            // Music playlist generation
-            const playlist = document.getElementById('playlist');
-            fetchMusicList().then(musicList => {
-                musicList.forEach((music, index) => {
-                    const li = document.createElement('li');
-                    li.textContent = `${index + 1}.mp3`;
-                    playlist.appendChild(li);
-                });
-            });
-        }
-
-        async function fetchMusicList() {
-            // Simulate fetching music list (replace with actual fetching logic)
-            return new Promise(resolve => {
-                setTimeout(() => {
-                    // Example music list, replace with actual fetching logic
-                    const musicList = [
-                        { name: 'Song1', file: 'song1.mp3' },
-                        { name: 'Song2', file: 'song2.mp3' },
-                        { name: 'Song3', file: 'song3.mp3' }
-                    ];
-                    resolve(musicList);
-                }, 500); // Simulating delay
-            });
         }
 
         function addMobileControls() {
@@ -230,14 +203,6 @@
                 controls.appendChild(btn);
             });
             document.body.appendChild(controls);
-        }
-
-        function addMobileSpeedOption() {
-            let speedSelect = document.getElementById('speed');
-            let option = document.createElement('option');
-            option.value = "200";
-            option.textContent = "更慢";
-            speedSelect.appendChild(option);
         }
 
         function changeDirection(event) {
@@ -278,9 +243,9 @@
 
             let newHead = {x: snakeX, y: snakeY};
 
-            if (snakeX < box || snakeX > 19 * box || snakeY < box || snakeY > 19 * box || collision(newHead, snake)) {
+            if (snakeX < box || snakeX >= 20 * box || snakeY < box || snakeY >= 20 * box || collision(newHead, snake)) {
                 clearInterval(game);
-                showModal();
+                gameOver();
                 return;
             }
 
@@ -296,24 +261,24 @@
             return false;
         }
 
-        function showModal() {
-            const modal = document.getElementById('modal');
-            modal.style.display = 'flex';
+        function updateScoreboard() {
+            document.getElementById('score').textContent = '得分: ' + score;
         }
 
-        function updateScoreboard() {
-            const scoreboard = document.querySelector('.scoreboard');
-            scoreboard.textContent = `得分: ${score}`;
+        function gameOver() {
+            let modal = document.getElementById('modal');
+            modal.style.display = 'flex';
+            let modalContent = document.getElementById('modalContent');
+            modalContent.innerHTML = '<p>游戏结束！得分: ' + score + '</p>' + modalContent.innerHTML;
+            let countdown = document.getElementById('countdown');
+            countdown.style.display = 'none';
+            let confirmButton = document.getElementById('confirmButton');
+            confirmButton.textContent = '重新开始';
+            confirmButton.onclick = function() {
+                startGame();
+                modal.style.display = 'none';
+            };
         }
     </script>
-
-    <div id="modal">
-        <div id="modalContent">
-            <h2>游戏结束</h2>
-            <p>得分: <span class="scoreboard">0</span></p>
-            <p>是否重新开始游戏？</p>
-            <button id="confirmButton" class="modalButton" disabled>确认 (<span id="countdown">5</span>)</button>
-        </div>
-    </div>
 </body>
 </html>
