@@ -48,36 +48,51 @@
             border: 1px solid #000;
             border-radius: 5px;
         }
-        .description {
-            margin-top: 20px;
-            background-color: #fff;
-            padding: 10px;
-            border: 1px solid #000;
-            border-radius: 5px;
-        }
-        .mobile-controls {
-            display: flex;
-            justify-content: space-around;
+        #modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
             width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
         }
-        .mobile-controls button {
-            padding: 10px;
-            font-size: 20px;
+        #modalContent {
+            background-color: #fff;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 400px;
+            text-align: center;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        .modalButton {
+            padding: 10px 20px;
+            margin: 10px;
             background-color: #4CAF50;
             color: white;
             border: none;
             cursor: pointer;
-            border-radius: 50%;
+            border-radius: 5px;
             transition: background-color 0.3s;
         }
-        .mobile-controls button:hover {
+        .modalButton:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        .modalButton:hover:enabled {
             background-color: #45a049;
         }
     </style>
 </head>
 <body>
     <h1>贪吃蛇游戏</h1>
-    <canvas id="gameCanvas" width="600" height="600"></canvas>
+    <canvas id="gameCanvas" width="400" height="400"></canvas>
     <div class="controls">
         <label for="speed">速度:</label>
         <select id="speed">
@@ -88,12 +103,6 @@
             <option value="60">非常快</option>
             <option value="40">极快</option>
         </select>
-        <label for="difficulty">难度:</label>
-        <select id="difficulty">
-            <option value="1">简单</option>
-            <option value="2">中等</option>
-            <option value="3">困难</option>
-        </select>
         <button onclick="startGame()">开始游戏</button>
     </div>
     <div class="buttons">
@@ -102,23 +111,30 @@
         <button onclick="window.location.href='https://blog.tech-bowen.com'">进入博客</button>
     </div>
     <div id="score" class="scoreboard"></div>
+    <div id="modal">
+        <div id="modalContent">
+            <p>请前往用户协议网站查看用户协议，查看后点击"我已查看"，继续访问网站则默认您同意用户协议。</p>
+            <button class="modalButton" onclick="window.open('https://blog.tech-bowen.com/2024/07/blog-post.html', '_blank')">查看协议</button>
+            <button id="confirmButton" class="modalButton" disabled>我已查看</button>
+            <span id="countdown">5</span> 秒
+        </div>
+    </div>
     <script>
         let canvas = document.getElementById('gameCanvas');
         let ctx = canvas.getContext('2d');
         let box = 20;
         let snake = [{x: 9 * box, y: 10 * box}];
         let direction;
-        let food = {};
-        let obstacles = [];
+        let food = {x: Math.floor(Math.random() * 19 + 1) * box, y: Math.floor(Math.random() * 19 + 1) * box};
         let speed = 100;
         let game;
         let score = 0;
 
         function startGame() {
+            clearCache();
             direction = null;
             snake = [{x: 9 * box, y: 10 * box}];
-            generateFood();
-            generateObstacles();
+            food = {x: Math.floor(Math.random() * 19 + 1) * box, y: Math.floor(Math.random() * 19 + 1) * box};
             speed = parseInt(document.getElementById('speed').value);
             clearInterval(game);
             game = setInterval(draw, speed);
@@ -134,12 +150,34 @@
             clearCache();
             document.getElementById('speed').value = speed;
 
+            const modal = document.getElementById('modal');
+            const confirmButton = document.getElementById('confirmButton');
+            const countdown = document.getElementById('countdown');
+            let timeLeft = 5;
+
+            modal.style.display = 'flex';
+
+            const countdownInterval = setInterval(() => {
+                timeLeft--;
+                countdown.textContent = timeLeft;
+                if (timeLeft <= 0) {
+                    clearInterval(countdownInterval);
+                    confirmButton.disabled = false;
+                }
+            }, 1000);
+
+            confirmButton.onclick = function() {
+                modal.style.display = 'none';
+            };
+
             if (/Mobi|Android/i.test(navigator.userAgent)) {
                 addMobileControls();
-                const extraOption = document.createElement('option');
-                extraOption.value = "180";
-                extraOption.text = "超级慢";
-                document.getElementById('speed').appendChild(extraOption);
+                // 添加一个更慢的速度选项
+                let speedSelect = document.getElementById('speed');
+                let option = document.createElement('option');
+                option.value = "200";
+                option.textContent = "更慢";
+                speedSelect.appendChild(option);
             } else {
                 document.addEventListener('keydown', changeDirection);
                 document.addEventListener('keypress', (e) => {
@@ -150,16 +188,16 @@
 
         function addMobileControls() {
             let controls = document.createElement('div');
-            controls.className = 'mobile-controls';
-            ['⬆️', '⬇️', '⬅️', '➡️'].forEach(dir => {
+            controls.className = 'buttons';
+            ['上', '下', '左', '右'].forEach(dir => {
                 let btn = document.createElement('button');
                 btn.innerHTML = dir;
                 btn.addEventListener('click', () => {
                     switch(dir) {
-                        case '⬆️': direction = 'UP'; break;
-                        case '⬇️': direction = 'DOWN'; break;
-                        case '⬅️': direction = 'LEFT'; break;
-                        case '➡️': direction = 'RIGHT'; break;
+                        case '上': direction = 'UP'; break;
+                        case '下': direction = 'DOWN'; break;
+                        case '左': direction = 'LEFT'; break;
+                        case '右': direction = 'RIGHT'; break;
                     }
                 });
                 controls.appendChild(btn);
@@ -174,54 +212,18 @@
             else if (event.keyCode === 40 && direction !== 'UP') direction = 'DOWN';
         }
 
-        function collision(newHead, array) {
-            for (let i = 0; i < array.length; i++) {
-                if (newHead.x === array[i].x && newHead.y === array[i].y) return true;
-            }
-            return false;
-        }
-
-        function generateFood() {
-            let colors = ['red', 'green', 'blue'];
-            let points = [1, 2, 3];
-            let effects = ['none', 'speedUp', 'slowDown'];
-            let index = Math.floor(Math.random() * colors.length);
-            food = {
-                x: Math.floor(Math.random() * (canvas.width / box)) * box,
-                y: Math.floor(Math.random() * (canvas.height / box)) * box,
-                color: colors[index],
-                points: points[index],
-                effect: effects[index]
-            };
-        }
-
-        function generateObstacles() {
-            obstacles = [];
-            let difficulty = parseInt(document.getElementById('difficulty').value);
-            for (let i = 0; i < difficulty * 5; i++) {
-                obstacles.push({
-                    x: Math.floor(Math.random() * (canvas.width / box)) * box,
-                    y: Math.floor(Math.random() * (canvas.height / box)) * box
-                });
-            }
-        }
-
         function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
+
             for (let i = 0; i < snake.length; i++) {
-                ctx.fillStyle = (i === 0) ? '#0000FF' : '#00FF00';
+                ctx.fillStyle = (i === 0) ? 'green' : 'white';
                 ctx.fillRect(snake[i].x, snake[i].y, box, box);
-                ctx.strokeStyle = '#FFFFFF';
+                ctx.strokeStyle = 'red';
                 ctx.strokeRect(snake[i].x, snake[i].y, box, box);
             }
 
-            ctx.fillStyle = food.color;
+            ctx.fillStyle = 'red';
             ctx.fillRect(food.x, food.y, box, box);
-
-            for (let i = 0; i < obstacles.length; i++) {
-                ctx.fillStyle = '#8B0000';
-                ctx.fillRect(obstacles[i].x, obstacles[i].y, box, box);
-            }
 
             let snakeX = snake[0].x;
             let snakeY = snake[0].y;
@@ -231,40 +233,52 @@
             if (direction === 'RIGHT') snakeX += box;
             if (direction === 'DOWN') snakeY += box;
 
-            if (snakeX < 0 || snakeY < 0 || snakeX >= canvas.width || snakeY >= canvas.height || collision({x: snakeX, y: snakeY}, snake) || collision({x: snakeX, y: snakeY}, obstacles)) {
-                clearInterval(game);
-                alert(`游戏结束！你的分数是: ${score}`);
-                return;
-            }
-
-            let newHead = {x: snakeX, y: snakeY};
-
             if (snakeX === food.x && snakeY === food.y) {
-                score += food.points;
-                if (food.effect === 'speedUp') speed = Math.max(speed - 10, 40);
-                if (food.effect === 'slowDown') speed = Math.min(speed + 10, 150);
-                generateFood();
+                score++;
+                updateScoreboard();
+                food = {x: Math.floor(Math.random() * 19 + 1) * box, y: Math.floor(Math.random() * 19 + 1) * box};
             } else {
                 snake.pop();
             }
 
+            let newHead = {x: snakeX, y: snakeY};
+
+            if (snakeX < box || snakeX >= 20 * box || snakeY < box || snakeY >= 20 * box || collision(newHead, snake)) {
+                clearInterval(game);
+                gameOver();
+                return;
+            }
+
             snake.unshift(newHead);
-            updateScoreboard();
+        }
+
+        function collision(head, array) {
+            for (let i = 0; i < array.length; i++) {
+                if (head.x === array[i].x && head.y === array[i].y) {
+                    return true;
+                }
+            }
+            return false;
         }
 
         function updateScoreboard() {
-            document.getElementById('score').innerText = `分数: ${score}`;
+            document.getElementById('score').textContent = '得分: ' + score;
+        }
+
+        function gameOver() {
+            let modal = document.getElementById('modal');
+            modal.style.display = 'flex';
+            let modalContent = document.getElementById('modalContent');
+            modalContent.innerHTML = '<p>游戏结束！得分: ' + score + '</p>' + modalContent.innerHTML;
+            let countdown = document.getElementById('countdown');
+            countdown.style.display = 'none';
+            let confirmButton = document.getElementById('confirmButton');
+            confirmButton.textContent = '重新开始';
+            confirmButton.onclick = function() {
+                startGame();
+                modal.style.display = 'none';
+            };
         }
     </script>
-    <div class="description">
-        <h2>游戏玩法和效果</h2>
-        <ul>
-            <li><strong>方向键控制蛇的移动:</strong> 使用键盘的方向键或者在手机上使用箭头按钮控制蛇的移动方向。</li>
-            <li><strong>吃到不同颜色的食物:</strong> 不同颜色的食物有不同的分数和效果。红色食物加1分，绿色食物加2分，蓝色食物加3分。</li>
-            <li><strong>障碍物:</strong> 障碍物会阻碍蛇的移动路径。</li>
-            <li><strong>游戏结束条件:</strong> 蛇撞墙、撞到自己或者撞到障碍物时游戏结束，弹出得分提示框。</li>
-            <li><strong>重新开始游戏:</strong> 每次点击“开始游戏”按钮重新开始游戏。</li>
-        </ul>
-    </div>
 </body>
 </html>
