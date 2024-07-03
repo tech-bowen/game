@@ -8,8 +8,8 @@
         body {
             font-family: Arial, sans-serif;
             display: flex;
-            flex-direction: row;
-            align-items: flex-start;
+            flex-direction: column;
+            align-items: center;
             justify-content: center;
             height: 100vh;
             margin: 0;
@@ -17,12 +17,10 @@
         }
         h1 {
             color: #333;
-            text-align: center;
         }
         canvas {
             background-color: #fff;
             border: 1px solid #000;
-            margin-top: 20px;
         }
         .controls, .buttons {
             margin-top: 10px;
@@ -40,7 +38,7 @@
         .buttons button:hover {
             background-color: #45a049;
         }
-        .scoreboard, .timer {
+        .scoreboard {
             position: absolute;
             top: 10px;
             left: 10px;
@@ -50,69 +48,58 @@
             border: 1px solid #000;
             border-radius: 5px;
         }
-        .timer {
-            left: auto;
-            right: 10px;
+        .description {
+            margin-top: 20px;
+            background-color: #fff;
+            padding: 10px;
+            border: 1px solid #000;
+            border-radius: 5px;
         }
-        .game-info {
-            margin-left: 20px;
-            max-width: 200px;
-        }
-        .game-info h2 {
-            margin-top: 0;
-        }
-        .game-info p {
-            margin: 5px 0;
+        #timer {
+            font-size: 18px;
+            margin-top: 10px;
         }
     </style>
 </head>
 <body>
     <h1>贪吃蛇游戏</h1>
-    <div>
-        <canvas id="gameCanvas" width="600" height="600"></canvas>
-        <div id="score" class="scoreboard">分数: 0</div>
-        <div id="timer" class="timer" style="display:none">时间: 0</div>
+    <canvas id="gameCanvas" width="600" height="600"></canvas>
+    <div class="controls">
+        <label for="speed">速度:</label>
+        <select id="speed">
+            <option value="150">非常慢</option>
+            <option value="120">慢</option>
+            <option value="100">中等</option>
+            <option value="80">快</option>
+            <option value="60">非常快</option>
+            <option value="40">极快</option>
+        </select>
+        <label for="difficulty">难度:</label>
+        <select id="difficulty">
+            <option value="1">简单</option>
+            <option value="2">中等</option>
+            <option value="3">困难</option>
+        </select>
+        <label for="timeLimit">启用时间限制:</label>
+        <input type="checkbox" id="timeLimit">
+        <input type="number" id="timeValue" placeholder="时间 (秒)" disabled>
+        <button onclick="startGame()">开始游戏</button>
     </div>
-    <div class="game-info">
-        <div class="controls">
-            <label for="speed">速度:</label>
-            <select id="speed">
-                <option value="150">非常慢</option>
-                <option value="120">慢</option>
-                <option value="100">中等</option>
-                <option value="80">快</option>
-                <option value="60">非常快</option>
-                <option value="40">极快</option>
-            </select>
-            <br>
-            <label for="difficulty">难度:</label>
-            <select id="difficulty">
-                <option value="easy">简单</option>
-                <option value="medium">中等</option>
-                <option value="hard">困难</option>
-            </select>
-            <br>
-            <label for="timeLimit">启用时间限制:</label>
-            <input type="checkbox" id="timeLimit">
-            <br>
-            <label for="time">时间(秒):</label>
-            <input type="number" id="time" value="60" min="10">
-            <br>
-            <button onclick="startGame()">开始游戏</button>
-        </div>
-        <div class="buttons">
-            <button onclick="window.location.href='https://game.tech-bowen.com'">跳转网站</button>
-            <button onclick="window.location.href='mailto:admin@tech-bowen.com'">发邮件</button>
-            <button onclick="window.location.href='https://blog.tech-bowen.com'">进入博客</button>
-        </div>
-        <div class="game-info">
-            <h2>游戏玩法</h2>
-            <p>控制蛇吃掉食物，避免碰到墙壁和障碍物。</p>
-            <h2>食物效果</h2>
-            <p style="color: red;">红色食物: +1分</p>
-            <p style="color: green;">绿色食物: +2分</p>
-            <p style="color: blue;">蓝色食物: -1分</p>
-        </div>
+    <div id="timer"></div>
+    <div class="buttons">
+        <button onclick="window.location.href='https://game.tech-bowen.com'">跳转网站</button>
+        <button onclick="window.location.href='mailto:admin@tech-bowen.com'">发邮件</button>
+        <button onclick="window.location.href='https://blog.tech-bowen.com'">进入博客</button>
+    </div>
+    <div id="score" class="scoreboard"></div>
+    <div class="description">
+        <h2>游戏玩法:</h2>
+        <p>使用方向键或触摸按钮控制蛇的方向。吃掉不同颜色的食物以获得不同的效果和分数。</p>
+        <ul>
+            <li>红色食物: +1 分数</li>
+            <li>绿色食物: +2 分数，增加蛇的速度</li>
+            <li>蓝色食物: +3 分数，减少蛇的速度</li>
+        </ul>
     </div>
     <script>
         let canvas = document.getElementById('gameCanvas');
@@ -120,77 +107,59 @@
         let box = 20;
         let snake = [{x: 9 * box, y: 10 * box}];
         let direction;
-        let food;
+        let food = {};
+        let obstacles = [];
         let speed = 100;
         let game;
         let score = 0;
         let timeLimitEnabled = false;
-        let timeLeft = 60;
-        let timerInterval;
-        let obstacles = [];
+        let timeLimitValue = 0;
+        let timeLeft;
+
+        document.getElementById('timeLimit').addEventListener('change', function() {
+            document.getElementById('timeValue').disabled = !this.checked;
+        });
 
         function startGame() {
             clearCache();
-            clearInterval(timerInterval);
             direction = null;
             snake = [{x: 9 * box, y: 10 * box}];
             generateFood();
             generateObstacles();
             speed = parseInt(document.getElementById('speed').value);
             timeLimitEnabled = document.getElementById('timeLimit').checked;
-            timeLeft = parseInt(document.getElementById('time').value);
+            timeLimitValue = parseInt(document.getElementById('timeValue').value) || 0;
             clearInterval(game);
+            if (timeLimitEnabled) {
+                timeLeft = timeLimitValue;
+                document.getElementById('timer').innerText = `剩余时间: ${timeLeft} 秒`;
+                startTimer();
+            } else {
+                document.getElementById('timer').innerText = '';
+            }
             game = setInterval(draw, speed);
             score = 0;
             updateScoreboard();
-            if (timeLimitEnabled) {
-                document.getElementById('timer').style.display = 'block';
-                document.getElementById('timer').innerText = '时间: ' + timeLeft;
-                timerInterval = setInterval(updateTimer, 1000);
-            } else {
-                document.getElementById('timer').style.display = 'none';
-            }
+        }
+
+        function startTimer() {
+            const timerInterval = setInterval(() => {
+                if (!timeLimitEnabled) {
+                    clearInterval(timerInterval);
+                    return;
+                }
+                timeLeft--;
+                document.getElementById('timer').innerText = `剩余时间: ${timeLeft} 秒`;
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    clearInterval(game);
+                    alert(`时间到！游戏结束！你的分数是: ${score}`);
+                }
+            }, 1000);
         }
 
         function clearCache() {
             localStorage.clear();
-        }
-
-        function updateTimer() {
-            timeLeft--;
-            document.getElementById('timer').innerText = '时间: ' + timeLeft;
-            if (timeLeft <= 0) {
-                clearInterval(timerInterval);
-                clearInterval(game);
-                alert(`时间到！你的分数是: ${score}`);
-            }
-        }
-
-        function generateFood() {
-            const foodTypes = [
-                {color: 'red', points: 1},
-                {color: 'green', points: 2},
-                {color: 'blue', points: -1},
-            ];
-            let foodType = foodTypes[Math.floor(Math.random() * foodTypes.length)];
-            food = {
-                x: Math.floor(Math.random() * 29 + 1) * box,
-                y: Math.floor(Math.random() * 29 + 1) * box,
-                color: foodType.color,
-                points: foodType.points
-            };
-        }
-
-        function generateObstacles() {
-            obstacles = [];
-            let difficulty = document.getElementById('difficulty').value;
-            let obstacleCount = difficulty === 'easy' ? 5 : difficulty === 'medium' ? 10 : 15;
-            for (let i = 0; i < obstacleCount; i++) {
-                obstacles.push({
-                    x: Math.floor(Math.random() * 29 + 1) * box,
-                    y: Math.floor(Math.random() * 29 + 1) * box,
-                });
-            }
         }
 
         window.onload = function() {
@@ -199,8 +168,10 @@
 
             if (/Mobi|Android/i.test(navigator.userAgent)) {
                 addMobileControls();
-                let mobileSpeed = document.getElementById('speed');
-                mobileSpeed.innerHTML += '<option value="200">超级慢</option>';
+                const extraOption = document.createElement('option');
+                extraOption.value = "180";
+                extraOption.text = "超级慢";
+                document.getElementById('speed').appendChild(extraOption);
             } else {
                 document.addEventListener('keydown', changeDirection);
                 document.addEventListener('keypress', (e) => {
@@ -242,12 +213,37 @@
             return false;
         }
 
+        function generateFood() {
+            let colors = ['red', 'green', 'blue'];
+            let points = [1, 2, 3];
+            let effects = ['none', 'speedUp', 'slowDown'];
+            let index = Math.floor(Math.random() * colors.length);
+            food = {
+                x: Math.floor(Math.random() * (canvas.width / box)) * box,
+                y: Math.floor(Math.random() * (canvas.height / box)) * box,
+                color: colors[index],
+                points: points[index],
+                effect: effects[index]
+            };
+        }
+
+        function generateObstacles() {
+            obstacles = [];
+            let difficulty = parseInt(document.getElementById('difficulty').value);
+            for (let i = 0; i < difficulty * 5; i++) {
+                obstacles.push({
+                    x: Math.floor(Math.random() * (canvas.width / box)) * box,
+                    y: Math.floor(Math.random() * (canvas.height / box)) * box
+                });
+            }
+        }
+
         function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             for (let i = 0; i < snake.length; i++) {
-                ctx.fillStyle = (i === 0) ? 'black' : 'white';
-                ctx.strokeStyle = 'black';
+                ctx.fillStyle = (i === 0) ? 'black' : 'lightgreen';
                 ctx.fillRect(snake[i].x, snake[i].y, box, box);
+                ctx.strokeStyle = 'white';
                 ctx.strokeRect(snake[i].x, snake[i].y, box, box);
             }
 
@@ -267,7 +263,7 @@
             if (direction === 'RIGHT') snakeX += box;
             if (direction === 'DOWN') snakeY += box;
 
-            if (snakeX < 0 || snakeX >= canvas.width || snakeY < 0 || snakeY >= canvas.height || collision({x: snakeX, y: snakeY}, snake) || collision({x: snakeX, y: snakeY}, obstacles)) {
+            if (snakeX < 0 || snakeY < 0 || snakeX >= canvas.width || snakeY >= canvas.height || collision({x: snakeX, y: snakeY}, snake) || collision({x: snakeX, y: snakeY}, obstacles)) {
                 clearInterval(game);
                 alert(`游戏结束！你的分数是: ${score}`);
                 return;
@@ -277,17 +273,21 @@
 
             if (snakeX === food.x && snakeY === food.y) {
                 score += food.points;
-                updateScoreboard();
+                if (food.effect === 'speedUp') speed = Math.max(40, speed - 20);
+                if (food.effect === 'slowDown') speed = Math.min(180, speed + 20);
                 generateFood();
+                clearInterval(game);
+                game = setInterval(draw, speed);
             } else {
                 snake.pop();
             }
 
             snake.unshift(newHead);
+            updateScoreboard();
         }
 
         function updateScoreboard() {
-            document.getElementById('score').innerText = '分数: ' + score;
+            document.getElementById('score').innerText = `分数: ${score}`;
         }
     </script>
 </body>
