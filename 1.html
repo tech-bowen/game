@@ -172,12 +172,6 @@
 
             if (/Mobi|Android/i.test(navigator.userAgent)) {
                 addMobileControls();
-                // 添加一个更慢的速度选项
-                let speedSelect = document.getElementById('speed');
-                let option = document.createElement('option');
-                option.value = "200";
-                option.textContent = "更慢";
-                speedSelect.appendChild(option);
             } else {
                 document.addEventListener('keydown', changeDirection);
                 document.addEventListener('keypress', (e) => {
@@ -243,10 +237,9 @@
 
             let newHead = {x: snakeX, y: snakeY};
 
-            if (snakeX < box || snakeX >= 20 * box || snakeY < box || snakeY >= 20 * box || collision(newHead, snake)) {
+            if (snakeX < 0 || snakeY < 0 || snakeX >= 400 || snakeY >= 400 || collision(newHead, snake)) {
                 clearInterval(game);
-                gameOver();
-                return;
+                alert(`游戏结束！你的分数是: ${score}`);
             }
 
             snake.unshift(newHead);
@@ -254,30 +247,13 @@
 
         function collision(head, array) {
             for (let i = 0; i < array.length; i++) {
-                if (head.x === array[i].x && head.y === array[i].y) {
-                    return true;
-                }
+                if (head.x === array[i].x && head.y === array[i].y) return true;
             }
             return false;
         }
 
         function updateScoreboard() {
-            document.getElementById('score').textContent = '得分: ' + score;
-        }
-
-        function gameOver() {
-            let modal = document.getElementById('modal');
-            modal.style.display = 'flex';
-            let modalContent = document.getElementById('modalContent');
-            modalContent.innerHTML = '<p>游戏结束！得分: ' + score + '</p>' + modalContent.innerHTML;
-            let countdown = document.getElementById('countdown');
-            countdown.style.display = 'none';
-            let confirmButton = document.getElementById('confirmButton');
-            confirmButton.textContent = '重新开始';
-            confirmButton.onclick = function() {
-                startGame();
-                modal.style.display = 'none';
-            };
+            document.getElementById('score').innerText = `分数: ${score}`;
         }
     </script>
 </body>
