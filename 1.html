@@ -55,10 +55,6 @@
             border: 1px solid #000;
             border-radius: 5px;
         }
-        #timer {
-            font-size: 18px;
-            margin-top: 10px;
-        }
     </style>
 </head>
 <body>
@@ -80,12 +76,8 @@
             <option value="2">中等</option>
             <option value="3">困难</option>
         </select>
-        <label for="timeLimit">启用时间限制:</label>
-        <input type="checkbox" id="timeLimit">
-        <input type="number" id="timeValue" placeholder="时间 (秒)" disabled>
         <button onclick="startGame()">开始游戏</button>
     </div>
-    <div id="timer"></div>
     <div class="buttons">
         <button onclick="window.location.href='https://game.tech-bowen.com'">跳转网站</button>
         <button onclick="window.location.href='mailto:admin@tech-bowen.com'">发邮件</button>
@@ -96,9 +88,9 @@
         <h2>游戏玩法:</h2>
         <p>使用方向键或触摸按钮控制蛇的方向。吃掉不同颜色的食物以获得不同的效果和分数。</p>
         <ul>
-            <li>红色食物: +1 分数</li>
-            <li>绿色食物: +2 分数，增加蛇的速度</li>
-            <li>蓝色食物: +3 分数，减少蛇的速度</li>
+            <li style="color: red;">红色食物: +1 分数</li>
+            <li style="color: green;">绿色食物: +2 分数，增加蛇的速度</li>
+            <li style="color: blue;">蓝色食物: +3 分数，减少蛇的速度</li>
         </ul>
     </div>
     <script>
@@ -112,50 +104,17 @@
         let speed = 100;
         let game;
         let score = 0;
-        let timeLimitEnabled = false;
-        let timeLimitValue = 0;
-        let timeLeft;
-
-        document.getElementById('timeLimit').addEventListener('change', function() {
-            document.getElementById('timeValue').disabled = !this.checked;
-        });
 
         function startGame() {
-            clearCache();
             direction = null;
             snake = [{x: 9 * box, y: 10 * box}];
             generateFood();
             generateObstacles();
             speed = parseInt(document.getElementById('speed').value);
-            timeLimitEnabled = document.getElementById('timeLimit').checked;
-            timeLimitValue = parseInt(document.getElementById('timeValue').value) || 0;
             clearInterval(game);
-            if (timeLimitEnabled) {
-                timeLeft = timeLimitValue;
-                document.getElementById('timer').innerText = `剩余时间: ${timeLeft} 秒`;
-                startTimer();
-            } else {
-                document.getElementById('timer').innerText = '';
-            }
             game = setInterval(draw, speed);
             score = 0;
             updateScoreboard();
-        }
-
-        function startTimer() {
-            const timerInterval = setInterval(() => {
-                if (!timeLimitEnabled) {
-                    clearInterval(timerInterval);
-                    return;
-                }
-                timeLeft--;
-                document.getElementById('timer').innerText = `剩余时间: ${timeLeft} 秒`;
-                if (timeLeft <= 0) {
-                    clearInterval(timerInterval);
-                    clearInterval(game);
-                    alert(`时间到！游戏结束！你的分数是: ${score}`);
-                }
-            }, 1000);
         }
 
         function clearCache() {
@@ -241,9 +200,9 @@
         function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             for (let i = 0; i < snake.length; i++) {
-                ctx.fillStyle = (i === 0) ? 'black' : 'lightgreen';
+                ctx.fillStyle = (i === 0) ? '#0000FF' : '#00FF00';
                 ctx.fillRect(snake[i].x, snake[i].y, box, box);
-                ctx.strokeStyle = 'white';
+                ctx.strokeStyle = '#FFFFFF';
                 ctx.strokeRect(snake[i].x, snake[i].y, box, box);
             }
 
@@ -251,7 +210,7 @@
             ctx.fillRect(food.x, food.y, box, box);
 
             for (let i = 0; i < obstacles.length; i++) {
-                ctx.fillStyle = 'gray';
+                ctx.fillStyle = '#8B0000';
                 ctx.fillRect(obstacles[i].x, obstacles[i].y, box, box);
             }
 
@@ -273,11 +232,9 @@
 
             if (snakeX === food.x && snakeY === food.y) {
                 score += food.points;
-                if (food.effect === 'speedUp') speed = Math.max(40, speed - 20);
-                if (food.effect === 'slowDown') speed = Math.min(180, speed + 20);
+                if (food.effect === 'speedUp') speed = Math.max(speed - 10, 40);
+                if (food.effect === 'slowDown') speed = Math.min(speed + 10, 150);
                 generateFood();
-                clearInterval(game);
-                game = setInterval(draw, speed);
             } else {
                 snake.pop();
             }
