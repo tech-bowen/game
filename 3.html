@@ -11,7 +11,7 @@
         }
         .game-container {
             margin: 20px auto;
-            width: 300px;
+            width: 400px; /* 扫雷游戏界面稍大一点 */
         }
         .button-container {
             margin-top: 20px;
@@ -27,13 +27,14 @@
             text-decoration: none;
         }
         .cell {
-            width: 20px;
-            height: 20px;
+            width: 30px; /* 单元格稍大一点 */
+            height: 30px;
             border: 1px solid #ccc;
             display: inline-block;
             text-align: center;
             vertical-align: middle;
-            line-height: 20px;
+            line-height: 30px;
+            user-select: none; /* 禁止选中文本 */
         }
     </style>
 </head>
@@ -43,23 +44,47 @@
         <div id="minesweeper-game">
             <!-- 扫雷游戏的实际内容 -->
         </div>
-    </div>
-    <div class="button-container">
-        <!-- 三个按钮链接 -->
-        <a class="button" href="https://game.tech-bowen.com" target="_blank">跳转网站</a>
-        <a class="button" href="mailto:admin@tech-bowen.com">发送邮件</a>
-        <a class="button" href="https://blog.tech-bowen.com" target="_blank">前往博客</a>
+        <div id="instructions">
+            <h2>游戏介绍</h2>
+            <p>点击单元格揭示数字或地雷。数字表示周围的地雷数量。避免点中地雷。</p>
+            <p>电脑端按 Enter 重新开始游戏，手机端点击下方按钮重新开始。</p>
+        </div>
+        <div class="button-container">
+            <button class="button" onclick="restartGame()">重新开始游戏</button>
+        </div>
+        <div class="button-container">
+            <label for="difficulty">选择难度：</label>
+            <select id="difficulty">
+                <option value="easy">简单</option>
+                <option value="medium">中等</option>
+                <option value="hard">困难</option>
+            </select>
+            <button class="button" onclick="initializeGame()">开始游戏</button>
+        </div>
     </div>
 
     <script>
         // 扫雷游戏逻辑
-        const numRows = 10; // 游戏区行数
-        const numCols = 10; // 游戏区列数
-        const numMines = 15; // 地雷数量
+        let numRows = 10; // 默认行数
+        let numCols = 10; // 默认列数
+        let numMines = 15; // 默认地雷数量
         let gameBoard = []; // 游戏板数组
 
-        // 初始化游戏板
+        // 初始化游戏
         function initializeGame() {
+            // 根据难度选择设置行数、列数和地雷数量
+            let difficulty = document.getElementById("difficulty").value;
+            if (difficulty === "medium") {
+                numRows = numCols = 12;
+                numMines = 20;
+            } else if (difficulty === "hard") {
+                numRows = numCols = 15;
+                numMines = 30;
+            } else {
+                numRows = numCols = 10;
+                numMines = 15;
+            }
+
             // 创建空白游戏板
             gameBoard = new Array(numRows);
             for (let i = 0; i < numRows; i++) {
@@ -93,17 +118,7 @@
                     cell.dataset.row = i;
                     cell.dataset.col = j;
 
-                    if (gameBoard[i][j] === -1) {
-                        cell.textContent = "💣"; // 显示地雷
-                    } else {
-                        // 计算周围地雷数量
-                        let surroundingMines = countSurroundingMines(i, j);
-                        if (surroundingMines > 0) {
-                            cell.textContent = surroundingMines;
-                        }
-                    }
-
-                    // 点击事件处理
+                    // 设置点击事件
                     cell.addEventListener("click", function() {
                         revealCell(parseInt(this.dataset.row), parseInt(this.dataset.col));
                     });
@@ -112,19 +127,6 @@
                 }
                 gameElement.appendChild(document.createElement("br"));
             }
-        }
-
-        // 计算周围地雷数量
-        function countSurroundingMines(row, col) {
-            let count = 0;
-            for (let i = Math.max(0, row - 1); i <= Math.min(numRows - 1, row + 1); i++) {
-                for (let j = Math.max(0, col - 1); j <= Math.min(numCols - 1, col + 1); j++) {
-                    if (gameBoard[i][j] === -1) {
-                        count++;
-                    }
-                }
-            }
-            return count;
         }
 
         // 揭示单元格
@@ -154,11 +156,31 @@
             }
         }
 
+        // 计算周围地雷数量
+        function countSurroundingMines(row, col) {
+            let count = 0;
+            for (let i = Math.max(0, row - 1); i <= Math.min(numRows - 1, row + 1); i++) {
+                for (let j = Math.max(0, col - 1); j <= Math.min(numCols - 1, col + 1); j++) {
+                    if (gameBoard[i][j] === -1) {
+                        count++;
+                    }
+                }
+            }
+            return count;
+        }
+
         // 游戏结束
         function gameOver() {
             // 游戏结束逻辑，例如显示所有地雷位置
             alert("游戏结束，你点中了地雷！");
             // 可以添加重新开始游戏的按钮或逻辑
+        }
+
+        // 重新开始游戏
+        function restartGame() {
+            // 清除游戏板和其他设置
+            document.getElementById("minesweeper-game").innerHTML = "";
+            initializeGame();
         }
 
         // 初始化游戏
