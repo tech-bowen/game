@@ -55,6 +55,24 @@
             border: 1px solid #000;
             border-radius: 5px;
         }
+        .mobile-controls {
+            display: flex;
+            justify-content: space-around;
+            width: 100%;
+        }
+        .mobile-controls button {
+            padding: 10px;
+            font-size: 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 50%;
+            transition: background-color 0.3s;
+        }
+        .mobile-controls button:hover {
+            background-color: #45a049;
+        }
     </style>
 </head>
 <body>
@@ -84,15 +102,6 @@
         <button onclick="window.location.href='https://blog.tech-bowen.com'">进入博客</button>
     </div>
     <div id="score" class="scoreboard"></div>
-    <div class="description">
-        <h2>游戏玩法:</h2>
-        <p>使用方向键或触摸按钮控制蛇的方向。吃掉不同颜色的食物以获得不同的效果和分数。</p>
-        <ul>
-            <li style="color: red;">红色食物: +1 分数</li>
-            <li style="color: green;">绿色食物: +2 分数，增加蛇的速度</li>
-            <li style="color: blue;">蓝色食物: +3 分数，减少蛇的速度</li>
-        </ul>
-    </div>
     <script>
         let canvas = document.getElementById('gameCanvas');
         let ctx = canvas.getContext('2d');
@@ -141,16 +150,16 @@
 
         function addMobileControls() {
             let controls = document.createElement('div');
-            controls.className = 'buttons';
-            ['上', '下', '左', '右'].forEach(dir => {
+            controls.className = 'mobile-controls';
+            ['⬆️', '⬇️', '⬅️', '➡️'].forEach(dir => {
                 let btn = document.createElement('button');
                 btn.innerHTML = dir;
                 btn.addEventListener('click', () => {
                     switch(dir) {
-                        case '上': direction = 'UP'; break;
-                        case '下': direction = 'DOWN'; break;
-                        case '左': direction = 'LEFT'; break;
-                        case '右': direction = 'RIGHT'; break;
+                        case '⬆️': direction = 'UP'; break;
+                        case '⬇️': direction = 'DOWN'; break;
+                        case '⬅️': direction = 'LEFT'; break;
+                        case '➡️': direction = 'RIGHT'; break;
                     }
                 });
                 controls.appendChild(btn);
@@ -247,5 +256,15 @@
             document.getElementById('score').innerText = `分数: ${score}`;
         }
     </script>
+    <div class="description">
+        <h2>游戏玩法和效果</h2>
+        <ul>
+            <li><strong>方向键控制蛇的移动:</strong> 使用键盘的方向键或者在手机上使用箭头按钮控制蛇的移动方向。</li>
+            <li><strong>吃到不同颜色的食物:</strong> 不同颜色的食物有不同的分数和效果。红色食物加1分，绿色食物加2分，蓝色食物加3分。</li>
+            <li><strong>障碍物:</strong> 障碍物会阻碍蛇的移动路径。</li>
+            <li><strong>游戏结束条件:</strong> 蛇撞墙、撞到自己或者撞到障碍物时游戏结束，弹出得分提示框。</li>
+            <li><strong>重新开始游戏:</strong> 每次点击“开始游戏”按钮重新开始游戏。</li>
+        </ul>
+    </div>
 </body>
 </html>
