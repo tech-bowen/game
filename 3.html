@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Minesweeper Game</title>
+    <title>扫雷游戏</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -19,6 +19,8 @@
             display: flex;
             justify-content: center;
             margin-top: 20px;
+            flex-direction: column;
+            align-items: center;
         }
 
         #minesweeper {
@@ -26,6 +28,7 @@
             grid-template-columns: repeat(10, 40px);
             grid-template-rows: repeat(10, 40px);
             gap: 2px;
+            margin-bottom: 20px;
         }
 
         .cell {
@@ -54,10 +57,10 @@
             background-color: yellow;
         }
 
-        #instructions {
-            margin-left: 20px;
-            max-width: 300px;
-            text-align: left;
+        #controls {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
         }
 
         #buttons {
@@ -70,41 +73,77 @@
             font-size: 16px;
             cursor: pointer;
         }
+
+        #status {
+            display: flex;
+            justify-content: space-between;
+            width: 400px;
+        }
+
+        #timer, #mines-count {
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        #instructions {
+            max-width: 300px;
+            text-align: left;
+        }
     </style>
 </head>
 <body>
-    <h1>Minesweeper</h1>
+    <h1>扫雷游戏</h1>
+    <div id="controls">
+        <button onclick="initGame(9, 9, 10)">初级</button>
+        <button onclick="initGame(16, 16, 40)">中级</button>
+        <button onclick="initGame(16, 30, 99)">高级</button>
+    </div>
+    <div id="status">
+        <div id="mines-count">地雷: 0</div>
+        <div id="timer">时间: 0</div>
+    </div>
     <div id="game-container">
         <div id="minesweeper"></div>
         <div id="instructions">
-            <h2>How to Play</h2>
-            <p>Click on the cells to reveal them. Right-click to mark a cell as a mine. The numbers indicate how many mines are adjacent to that cell. Clear all non-mine cells to win the game. If you click on a mine, you lose!</p>
+            <h2>游戏玩法</h2>
+            <p>点击格子以揭示内容。右键点击以标记地雷。数字表示相邻地雷的数量。清除所有非地雷格子即获胜。如果点击到地雷，游戏结束。</p>
         </div>
     </div>
     <div id="buttons">
-        <button onclick="window.location.href='https://game.tech-bowen.com'">Jump to Website</button>
-        <button onclick="window.location.href='mailto:admin@tech-bowen.com'">Send Email</button>
-        <button onclick="window.location.href='https://blog.tech-bowen.com'">Go to Blog</button>
+        <button onclick="window.location.href='https://game.tech-bowen.com'">跳转网站</button>
+        <button onclick="window.location.href='mailto:admin@tech-bowen.com'">发送邮件</button>
+        <button onclick="window.location.href='https://blog.tech-bowen.com'">前往博客</button>
     </div>
     <script>
-        const rows = 10;
-        const cols = 10;
-        const minesCount = 10;
         let board = [];
+        let rows = 9;
+        let cols = 9;
+        let minesCount = 10;
         let revealedCount = 0;
+        let timerInterval;
+        let timeElapsed = 0;
 
         const minesweeper = document.getElementById('minesweeper');
+        const timerDisplay = document.getElementById('timer');
+        const minesCountDisplay = document.getElementById('mines-count');
 
-        function initGame() {
+        function initGame(r, c, mines) {
+            rows = r;
+            cols = c;
+            minesCount = mines;
+            revealedCount = 0;
+            timeElapsed = 0;
+            clearInterval(timerInterval);
+            timerDisplay.textContent = `时间: ${timeElapsed}`;
+            minesCountDisplay.textContent = `地雷: ${minesCount}`;
+
             board = Array(rows).fill().map(() => Array(cols).fill({
                 mine: false,
                 revealed: false,
                 flagged: false,
                 adjacentMines: 0
             }));
-            revealedCount = 0;
 
-            // Plant mines
             for (let i = 0; i < minesCount; i++) {
                 let row, col;
                 do {
@@ -113,7 +152,6 @@
                 } while (board[row][col].mine);
                 board[row][col].mine = true;
 
-                // Update adjacent cells
                 for (let r = Math.max(0, row - 1); r <= Math.min(rows - 1, row + 1); r++) {
                     for (let c = Math.max(0, col - 1); c <= Math.min(cols - 1, col + 1); c++) {
                         if (!board[r][c].mine) {
@@ -124,9 +162,11 @@
             }
 
             renderBoard();
+            startTimer();
         }
 
         function renderBoard() {
+            minesweeper.style.gridTemplateColumns = `repeat(${cols}, 40px)`;
             minesweeper.innerHTML = '';
             for (let row = 0; row < rows; row++) {
                 for (let col = 0; col < cols; col++) {
@@ -156,15 +196,14 @@
 
             if (board[row][col].mine) {
                 cell.classList.add('mine');
-                alert('Game Over');
-                initGame();
+                alert('游戏结束');
+                initGame(rows, cols, minesCount);
                 return;
             }
 
             if (board[row][col].adjacentMines > 0) {
                 cell.textContent = board[row][col].adjacentMines;
             } else {
-                // Reveal adjacent cells
                 for (let r = Math.max(0, row - 1); r <= Math.min(rows - 1, row + 1); r++) {
                     for (let c = Math.max(0, col - 1); c <= Math.min(cols - 1, col + 1); c++) {
                         if (!board[r][c].revealed) {
@@ -175,8 +214,8 @@
             }
 
             if (revealedCount === rows * cols - minesCount) {
-                alert('You Win!');
-                initGame();
+                alert('你赢了！');
+                initGame(rows, cols, minesCount);
             }
         }
 
@@ -192,7 +231,15 @@
             }
         }
 
-        initGame();
+        function startTimer() {
+            clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                timeElapsed++;
+                timerDisplay.textContent = `时间: ${timeElapsed}`;
+            }, 1000);
+        }
+
+        initGame(9, 9, 10);
     </script>
 </body>
 </html>
