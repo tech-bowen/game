@@ -3,188 +3,196 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>扫雷游戏</title>
+    <title>Minesweeper Game</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             text-align: center;
+            background-color: #f0f0f0;
         }
-        .game-container {
-            margin: 20px auto;
-            width: 400px; /* 扫雷游戏界面稍大一点 */
+
+        h1 {
+            color: #333;
         }
-        .button-container {
+
+        #game-container {
+            display: flex;
+            justify-content: center;
             margin-top: 20px;
         }
-        .button {
-            padding: 10px 20px;
-            margin: 0 10px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            cursor: pointer;
-            border-radius: 5px;
-            text-decoration: none;
+
+        #minesweeper {
+            display: grid;
+            grid-template-columns: repeat(10, 40px);
+            grid-template-rows: repeat(10, 40px);
+            gap: 2px;
         }
+
         .cell {
-            width: 30px; /* 单元格稍大一点 */
-            height: 30px;
-            border: 1px solid #ccc;
-            display: inline-block;
-            text-align: center;
-            vertical-align: middle;
-            line-height: 30px;
-            user-select: none; /* 禁止选中文本 */
+            width: 40px;
+            height: 40px;
+            background-color: #ddd;
+            border: 1px solid #999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            cursor: pointer;
+        }
+
+        .cell.revealed {
+            background-color: #fff;
+            cursor: default;
+        }
+
+        .cell.mine {
+            background-color: red;
+            color: white;
+        }
+
+        .cell.flag {
+            background-color: yellow;
+        }
+
+        #instructions {
+            margin-left: 20px;
+            max-width: 300px;
+            text-align: left;
+        }
+
+        #buttons {
+            margin-top: 20px;
+        }
+
+        button {
+            margin: 5px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
         }
     </style>
 </head>
 <body>
-    <h1>扫雷游戏</h1>
-    <div class="game-container">
-        <div id="minesweeper-game">
-            <!-- 扫雷游戏的实际内容 -->
-        </div>
+    <h1>Minesweeper</h1>
+    <div id="game-container">
+        <div id="minesweeper"></div>
         <div id="instructions">
-            <h2>游戏介绍</h2>
-            <p>点击单元格揭示数字或地雷。数字表示周围的地雷数量。避免点中地雷。</p>
-            <p>电脑端按 Enter 重新开始游戏，手机端点击下方按钮重新开始。</p>
-        </div>
-        <div class="button-container">
-            <button class="button" onclick="restartGame()">重新开始游戏</button>
-        </div>
-        <div class="button-container">
-            <label for="difficulty">选择难度：</label>
-            <select id="difficulty">
-                <option value="easy">简单</option>
-                <option value="medium">中等</option>
-                <option value="hard">困难</option>
-            </select>
-            <button class="button" onclick="initializeGame()">开始游戏</button>
+            <h2>How to Play</h2>
+            <p>Click on the cells to reveal them. Right-click to mark a cell as a mine. The numbers indicate how many mines are adjacent to that cell. Clear all non-mine cells to win the game. If you click on a mine, you lose!</p>
         </div>
     </div>
-
+    <div id="buttons">
+        <button onclick="window.location.href='https://game.tech-bowen.com'">Jump to Website</button>
+        <button onclick="window.location.href='mailto:admin@tech-bowen.com'">Send Email</button>
+        <button onclick="window.location.href='https://blog.tech-bowen.com'">Go to Blog</button>
+    </div>
     <script>
-        // 扫雷游戏逻辑
-        let numRows = 10; // 默认行数
-        let numCols = 10; // 默认列数
-        let numMines = 15; // 默认地雷数量
-        let gameBoard = []; // 游戏板数组
+        const rows = 10;
+        const cols = 10;
+        const minesCount = 10;
+        let board = [];
+        let revealedCount = 0;
 
-        // 初始化游戏
-        function initializeGame() {
-            // 根据难度选择设置行数、列数和地雷数量
-            let difficulty = document.getElementById("difficulty").value;
-            if (difficulty === "medium") {
-                numRows = numCols = 12;
-                numMines = 20;
-            } else if (difficulty === "hard") {
-                numRows = numCols = 15;
-                numMines = 30;
-            } else {
-                numRows = numCols = 10;
-                numMines = 15;
-            }
+        const minesweeper = document.getElementById('minesweeper');
 
-            // 创建空白游戏板
-            gameBoard = new Array(numRows);
-            for (let i = 0; i < numRows; i++) {
-                gameBoard[i] = new Array(numCols).fill(0);
-            }
+        function initGame() {
+            board = Array(rows).fill().map(() => Array(cols).fill({
+                mine: false,
+                revealed: false,
+                flagged: false,
+                adjacentMines: 0
+            }));
+            revealedCount = 0;
 
-            // 随机布置地雷
-            let placedMines = 0;
-            while (placedMines < numMines) {
-                let row = Math.floor(Math.random() * numRows);
-                let col = Math.floor(Math.random() * numCols);
-                if (gameBoard[row][col] !== -1) {
-                    gameBoard[row][col] = -1; // -1 表示地雷
-                    placedMines++;
-                }
-            }
+            // Plant mines
+            for (let i = 0; i < minesCount; i++) {
+                let row, col;
+                do {
+                    row = Math.floor(Math.random() * rows);
+                    col = Math.floor(Math.random() * cols);
+                } while (board[row][col].mine);
+                board[row][col].mine = true;
 
-            // 绘制游戏板
-            renderGameBoard();
-        }
-
-        // 绘制游戏板
-        function renderGameBoard() {
-            let gameElement = document.getElementById("minesweeper-game");
-            gameElement.innerHTML = ""; // 清空现有内容
-
-            for (let i = 0; i < numRows; i++) {
-                for (let j = 0; j < numCols; j++) {
-                    let cell = document.createElement("div");
-                    cell.classList.add("cell");
-                    cell.dataset.row = i;
-                    cell.dataset.col = j;
-
-                    // 设置点击事件
-                    cell.addEventListener("click", function() {
-                        revealCell(parseInt(this.dataset.row), parseInt(this.dataset.col));
-                    });
-
-                    gameElement.appendChild(cell);
-                }
-                gameElement.appendChild(document.createElement("br"));
-            }
-        }
-
-        // 揭示单元格
-        function revealCell(row, col) {
-            let cell = document.querySelector(`.cell[data-row="${row}"][data-col="${col}"]`);
-            if (cell.textContent === "") {
-                if (gameBoard[row][col] === -1) {
-                    // 点中地雷，游戏结束逻辑
-                    cell.textContent = "💥";
-                    gameOver();
-                } else {
-                    // 揭示当前单元格和周围无地雷的单元格
-                    let surroundingMines = countSurroundingMines(row, col);
-                    cell.textContent = surroundingMines === 0 ? "" : surroundingMines;
-
-                    // 递归揭示周围无地雷的单元格
-                    if (surroundingMines === 0) {
-                        for (let i = Math.max(0, row - 1); i <= Math.min(numRows - 1, row + 1); i++) {
-                            for (let j = Math.max(0, col - 1); j <= Math.min(numCols - 1, col + 1); j++) {
-                                if (gameBoard[i][j] !== -1) {
-                                    revealCell(i, j);
-                                }
-                            }
+                // Update adjacent cells
+                for (let r = Math.max(0, row - 1); r <= Math.min(rows - 1, row + 1); r++) {
+                    for (let c = Math.max(0, col - 1); c <= Math.min(cols - 1, col + 1); c++) {
+                        if (!board[r][c].mine) {
+                            board[r][c].adjacentMines++;
                         }
                     }
                 }
             }
+
+            renderBoard();
         }
 
-        // 计算周围地雷数量
-        function countSurroundingMines(row, col) {
-            let count = 0;
-            for (let i = Math.max(0, row - 1); i <= Math.min(numRows - 1, row + 1); i++) {
-                for (let j = Math.max(0, col - 1); j <= Math.min(numCols - 1, col + 1); j++) {
-                    if (gameBoard[i][j] === -1) {
-                        count++;
+        function renderBoard() {
+            minesweeper.innerHTML = '';
+            for (let row = 0; row < rows; row++) {
+                for (let col = 0; col < cols; col++) {
+                    const cell = document.createElement('div');
+                    cell.classList.add('cell');
+                    cell.dataset.row = row;
+                    cell.dataset.col = col;
+
+                    cell.addEventListener('click', () => revealCell(row, col));
+                    cell.addEventListener('contextmenu', (e) => {
+                        e.preventDefault();
+                        flagCell(row, col);
+                    });
+
+                    minesweeper.appendChild(cell);
+                }
+            }
+        }
+
+        function revealCell(row, col) {
+            if (board[row][col].revealed || board[row][col].flagged) return;
+
+            board[row][col].revealed = true;
+            revealedCount++;
+            const cell = document.querySelector(`[data-row='${row}'][data-col='${col}']`);
+            cell.classList.add('revealed');
+
+            if (board[row][col].mine) {
+                cell.classList.add('mine');
+                alert('Game Over');
+                initGame();
+                return;
+            }
+
+            if (board[row][col].adjacentMines > 0) {
+                cell.textContent = board[row][col].adjacentMines;
+            } else {
+                // Reveal adjacent cells
+                for (let r = Math.max(0, row - 1); r <= Math.min(rows - 1, row + 1); r++) {
+                    for (let c = Math.max(0, col - 1); c <= Math.min(cols - 1, col + 1); c++) {
+                        if (!board[r][c].revealed) {
+                            revealCell(r, c);
+                        }
                     }
                 }
             }
-            return count;
+
+            if (revealedCount === rows * cols - minesCount) {
+                alert('You Win!');
+                initGame();
+            }
         }
 
-        // 游戏结束
-        function gameOver() {
-            // 游戏结束逻辑，例如显示所有地雷位置
-            alert("游戏结束，你点中了地雷！");
-            // 可以添加重新开始游戏的按钮或逻辑
+        function flagCell(row, col) {
+            if (board[row][col].revealed) return;
+
+            board[row][col].flagged = !board[row][col].flagged;
+            const cell = document.querySelector(`[data-row='${row}'][data-col='${col}']`);
+            if (board[row][col].flagged) {
+                cell.classList.add('flag');
+            } else {
+                cell.classList.remove('flag');
+            }
         }
 
-        // 重新开始游戏
-        function restartGame() {
-            // 清除游戏板和其他设置
-            document.getElementById("minesweeper-game").innerHTML = "";
-            initializeGame();
-        }
-
-        // 初始化游戏
-        initializeGame();
+        initGame();
     </script>
 </body>
 </html>
