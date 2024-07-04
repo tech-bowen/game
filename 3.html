@@ -17,16 +17,13 @@
 
         #game-container {
             display: flex;
-            justify-content: center;
-            margin-top: 20px;
             flex-direction: column;
             align-items: center;
+            margin-top: 20px;
         }
 
         #minesweeper {
             display: grid;
-            grid-template-columns: repeat(10, 40px);
-            grid-template-rows: repeat(10, 40px);
             gap: 2px;
             margin-bottom: 20px;
         }
@@ -57,14 +54,8 @@
             background-color: yellow;
         }
 
-        #controls {
-            display: flex;
-            justify-content: center;
+        #controls, #status, #buttons {
             margin-bottom: 20px;
-        }
-
-        #buttons {
-            margin-top: 20px;
         }
 
         button {
@@ -137,12 +128,18 @@
             timerDisplay.textContent = `时间: ${timeElapsed}`;
             minesCountDisplay.textContent = `地雷: ${minesCount}`;
 
-            board = Array(rows).fill().map(() => Array(cols).fill({
-                mine: false,
-                revealed: false,
-                flagged: false,
-                adjacentMines: 0
-            }));
+            board = [];
+            for (let i = 0; i < rows; i++) {
+                board[i] = [];
+                for (let j = 0; j < cols; j++) {
+                    board[i][j] = {
+                        mine: false,
+                        revealed: false,
+                        flagged: false,
+                        adjacentMines: 0
+                    };
+                }
+            }
 
             for (let i = 0; i < minesCount; i++) {
                 let row, col;
